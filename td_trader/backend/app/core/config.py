@@ -12,6 +12,9 @@ class Settings(BaseModel):
     PROJECT_NAME: str = "TD TRADER"
     VERSION: str = "2.0.0"
     TAGLINE: str = "Trade Smarter. Think Faster. Let AI Explain."
+    OWNER: str = "TechDaddy"
+    COPYRIGHT: str = "Copyright © 2026 TechDaddy. All rights reserved."
+    ORGANIZATION: str = "TechDaddy Fintech Systems"
     API_PREFIX: str = "/api/v1"
     
     # Security & Encryption

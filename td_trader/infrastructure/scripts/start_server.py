@@ -1,4 +1,6 @@
 """TD TRADER - Production Server Launcher
+Copyright © 2026 TechDaddy. All rights reserved.
+Owned and Developed by TechDaddy Fintech Systems.
 Initializes SQLite/PostgreSQL schema, pre-warms AI scanner, and binds Starlette ASGI on Uvicorn.
 """
 
@@ -15,6 +17,8 @@ def run_server():
     print("=" * 70)
     print(f"  {settings.PROJECT_NAME} v{settings.VERSION}")
     print(f"  Tagline: {settings.TAGLINE}")
+    print(f"  Owner: {settings.OWNER} ({settings.ORGANIZATION})")
+    print(f"  {settings.COPYRIGHT}")
     print("=" * 70)
     print("  Initializing SQLite / PostgreSQL database schemas...")
     print("  Pre-warming AI Multi-Market Scanner across Forex, Crypto, Metals, Indices...")

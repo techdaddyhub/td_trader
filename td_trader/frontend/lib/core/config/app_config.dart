@@ -3,6 +3,9 @@ class AppConfig {
   static const String appName = 'TD TRADER';
   static const String appVersion = '2.0.0';
   static const String tagline = 'Trade Smarter. Think Faster. Let AI Explain.';
+  static const String owner = 'TechDaddy';
+  static const String copyright = 'Copyright © 2026 TechDaddy. All rights reserved.';
+  static const String organization = 'TechDaddy Fintech Systems';
   
   // API & WebSocket Endpoints (Configurable for local / VPS / production)
   static const String baseUrl = 'http://127.0.0.1:8000';

@@ -1,10 +1,11 @@
 //+------------------------------------------------------------------+
 //|                                        TDTrader_Bridge_MT5.mq5   |
-//|                        Copyright 2026, TD TRADER Fintech Systems |
-//|                                             https://tdtrader.io  |
+//|                                Copyright © 2026 TechDaddy        |
+//|                         Owned by TechDaddy Fintech Systems       |
+//|                                     https://github.com/techdaddyhub |
 //+------------------------------------------------------------------+
-#property copyright "Copyright 2026, TD TRADER Fintech Systems"
-#property link      "https://tdtrader.io"
+#property copyright "Copyright © 2026 TechDaddy. All rights reserved."
+#property link      "https://github.com/techdaddyhub"
 #property version   "2.00"
 
 #include <Trade\Trade.mqh>

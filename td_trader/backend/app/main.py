@@ -28,6 +28,9 @@ async def root_status(request):
         "project": settings.PROJECT_NAME,
         "tagline": settings.TAGLINE,
         "version": settings.VERSION,
+        "owner": settings.OWNER,
+        "organization": settings.ORGANIZATION,
+        "copyright": settings.COPYRIGHT,
         "status": "OPERATIONAL",
         "core_modules": [
             "1. AI Multi-Market Scanner",

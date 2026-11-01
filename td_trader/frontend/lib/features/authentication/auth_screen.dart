@@ -1,7 +1,9 @@
+// Copyright (c) 2026 TechDaddy. All rights reserved.
 // TD TRADER - Authentication Screen
 import 'package:flutter/material.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/services/api_service.dart';
+import '../../core/widgets/techdaddy_logo.dart';
 import '../dashboard/main_navigation_screen.dart';
 
 class AuthScreen extends StatefulWidget {
@@ -81,32 +83,15 @@ class _AuthScreenState extends State<AuthScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Brand Header
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: AppColors.primaryCyan.withOpacity(0.15),
-                      ),
-                      child: const Icon(Icons.show_chart, color: AppColors.primaryCyan, size: 40),
-                    ),
-                    const SizedBox(height: 16),
-                    const Text(
-                      'TD TRADER',
-                      style: TextStyle(
-                        color: AppColors.textPrimary,
-                        fontSize: 26,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 1.5,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
+                    // TechDaddy Official TD Logo
+                    const TechDaddyLogo(size: 72, showText: true, showCopyright: false),
+                    const SizedBox(height: 6),
                     const Text(
                       'Trade Smarter. Think Faster. Let AI Explain.',
                       style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
                       textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 28),
+                    const SizedBox(height: 24),
 
                     if (_errorMessage != null)
                       Container(
@@ -175,6 +160,12 @@ class _AuthScreenState extends State<AuthScreen> {
                         _isSignUp ? 'Already registered? Sign in' : "Don't have an account? Create one",
                         style: const TextStyle(color: AppColors.primaryCyan, fontSize: 13),
                       ),
+                    ),
+                    const SizedBox(height: 12),
+                    const Text(
+                      'Copyright © 2026 TechDaddy. All rights reserved.',
+                      style: TextStyle(color: AppColors.textMuted, fontSize: 11),
+                      textAlign: TextAlign.center,
                     ),
                   ],
                 ),

@@ -1,6 +1,8 @@
+// Copyright (c) 2026 TechDaddy. All rights reserved.
 // TD TRADER - Main Adaptive Navigation Shell with Navigation Drawer
 import 'package:flutter/material.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/widgets/techdaddy_logo.dart';
 import '../market_scanner/scanner_screen.dart';
 import '../voice_assistant/voice_assistant_screen.dart';
 import '../risk_guardian/risk_guardian_screen.dart';
@@ -46,18 +48,32 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                 children: [
                   Row(
                     children: const [
-                      Icon(Icons.show_chart, color: AppColors.primaryCyan, size: 28),
-                      SizedBox(width: 10),
-                      Text(
-                        'TD TRADER',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20, letterSpacing: 1.2),
+                      TechDaddyLogo(size: 38, showText: false),
+                      SizedBox(width: 12),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'TECHDADDY',
+                            style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16, letterSpacing: 1.5, color: AppColors.primaryCyan),
+                          ),
+                          Text(
+                            'TD TRADER v2.0.0',
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.white),
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 10),
                   const Text(
                     'Trade Smarter. Think Faster. Let AI Explain.',
                     style: TextStyle(color: AppColors.textSecondary, fontSize: 11),
+                  ),
+                  const SizedBox(height: 4),
+                  const Text(
+                    'Copyright © 2026 TechDaddy',
+                    style: TextStyle(color: AppColors.goldAccent, fontSize: 10, fontWeight: FontWeight.bold),
                   ),
                 ],
               ),

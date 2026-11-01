@@ -1,10 +1,21 @@
 # TD TRADER – Advanced AI Trading Ecosystem
 ### *Trade Smarter. Think Faster. Let AI Explain.*
+**Copyright © 2026 TechDaddy. All rights reserved.**  
+**Owned and Developed Exclusively by TechDaddy Fintech Systems**
 
+[![Copyright](https://img.shields.io/badge/Copyright-%C2%A9%202026%20TechDaddy-gold.svg)](LICENSE)
 [![CI Pipeline](https://github.com/techdaddyhub/td_trader/actions/workflows/ci.yml/badge.svg)](https://github.com/techdaddyhub/td_trader/actions/workflows/ci.yml)
 [![Release Multi-Platform](https://github.com/techdaddyhub/td_trader/actions/workflows/release.yml/badge.svg)](https://github.com/techdaddyhub/td_trader/actions/workflows/release.yml)
 [![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)](https://github.com/techdaddyhub/td_trader/releases)
 [![Platform](https://img.shields.io/badge/platform-Android%20%7C%20Windows%20%7C%20Linux%20%7C%20macOS%20%7C%20Web-brightgreen.svg)](https://github.com/techdaddyhub/td_trader/releases)
+
+```
+   █████████  ██████████   
+      ██      ██       ██  
+      ██      ██       ██  [TECHDADDY]
+      ██      ██       ██  TD TRADER ECOSYSTEM
+      ██      ██████████   Copyright © 2026 TechDaddy
+```
 
 ---
 
@@ -144,3 +155,13 @@ python3 -m unittest td_trader/infrastructure/tests/test_master_suite.py
 ```
 
 All 6 test cases pass with 100% verification across security, scanner, voice synthesis, risk gates, backtesting, and account isolation.
+
+---
+
+## ⚖️ Legal & Intellectual Property Notice
+
+**Copyright © 2026 TechDaddy. All rights reserved.**  
+All proprietary rights, trade secrets, software code, algorithms, and brand trademarks (`TD`, `TD TRADER`, `TechDaddy`) are owned exclusively by **TechDaddy Fintech Systems**.
+
+Unauthorized distribution, reverse engineering, or reproduction is strictly prohibited. For licensing inquiries, contact [TechDaddy GitHub](https://github.com/techdaddyhub).
+

@@ -1,7 +1,9 @@
+// Copyright (c) 2026 TechDaddy. All rights reserved.
 // TD TRADER - Application Settings & Risk Presets Screen
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/widgets/techdaddy_logo.dart';
 import '../../core/providers/app_state_providers.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -97,23 +99,26 @@ class SettingsScreen extends StatelessWidget {
           ),
           const SizedBox(height: 20),
 
-          // About
-          _buildSectionHeader('ABOUT TD TRADER'),
+          // About & TechDaddy Ownership
+          _buildSectionHeader('OWNERSHIP & LEGAL NOTICES'),
           Card(
             color: AppColors.surface,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            child: const Padding(
-              padding: EdgeInsets.all(16),
+            child: Padding(
+              padding: const EdgeInsets.all(20),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('TD TRADER - Advanced AI Trading Ecosystem', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                  SizedBox(height: 4),
-                  Text('Version 2.0.0 (Production Release)', style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
-                  SizedBox(height: 8),
+                children: const [
+                  TechDaddyLogo(size: 64, showText: true, showCopyright: true),
+                  SizedBox(height: 12),
                   Text(
-                    'Tagline: Trade Smarter. Think Faster. Let AI Explain.',
-                    style: TextStyle(color: AppColors.goldAccent, fontSize: 12, fontStyle: FontStyle.italic),
+                    'Exclusive Property of TechDaddy Fintech Systems',
+                    style: TextStyle(color: AppColors.goldAccent, fontSize: 12, fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 6),
+                  Text(
+                    'All algorithms, neural network architectures, Smart Risk Guardian rules, and MetaTrader bridge protocols are protected under international copyright law.',
+                    style: TextStyle(color: AppColors.textSecondary, fontSize: 11, height: 1.4),
+                    textAlign: TextAlign.center,
                   ),
                 ],
               ),

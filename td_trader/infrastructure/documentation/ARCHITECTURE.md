@@ -1,6 +1,8 @@
 # TD TRADER - Architectural Blueprint & Integration Guide
-**Advanced AI Trading Ecosystem**
-*Trade Smarter. Think Faster. Let AI Explain.*
+**Advanced AI Trading Ecosystem**  
+*Trade Smarter. Think Faster. Let AI Explain.*  
+**Copyright © 2026 TechDaddy. All rights reserved.**  
+**Owned and Developed Exclusively by TechDaddy Fintech Systems**
 
 ---
 
