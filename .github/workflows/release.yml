@@ -1,0 +1,307 @@
+name: TD TRADER - Multi-Platform Build & Automated Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Release Tag (e.g. v2.0.0)'
+        required: true
+        default: 'v2.0.0'
+
+permissions:
+  contents: write
+  packages: write
+  pages: write
+
+jobs:
+  # ==========================================
+  # 1. BUILD ANDROID APK & APP BUNDLE
+  # ==========================================
+  build-android:
+    name: Build Android APK & AAB
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Install Frontend Dependencies
+        working-directory: td_trader/frontend
+        run: flutter pub get
+
+      - name: Build Android Release APK
+        working-directory: td_trader/frontend
+        run: flutter build apk --release
+
+      - name: Rename & Package APK
+        run: |
+          mkdir -p artifacts
+          cp td_trader/frontend/build/app/outputs/flutter-apk/app-release.apk artifacts/TDTrader-Android.apk
+
+      - name: Upload Android Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-release
+          path: artifacts/TDTrader-Android.apk
+
+  # ==========================================
+  # 2. BUILD LINUX DESKTOP APP
+  # ==========================================
+  build-linux:
+    name: Build Linux Desktop Bundle
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Install Linux Build Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Enable Linux Desktop Support
+        run: flutter config --enable-linux-desktop
+
+      - name: Install Frontend Dependencies
+        working-directory: td_trader/frontend
+        run: flutter pub get
+
+      - name: Build Linux Desktop Release
+        working-directory: td_trader/frontend
+        run: flutter build linux --release
+
+      - name: Package Linux Binary Archive
+        run: |
+          mkdir -p artifacts
+          tar -czvf artifacts/TDTrader-Linux-x64.tar.gz -C td_trader/frontend/build/linux/x64/release/bundle .
+
+      - name: Upload Linux Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-release
+          path: artifacts/TDTrader-Linux-x64.tar.gz
+
+  # ==========================================
+  # 3. BUILD WINDOWS DESKTOP APP
+  # ==========================================
+  build-windows:
+    name: Build Windows Desktop App
+    runs-on: windows-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Enable Windows Desktop Support
+        run: flutter config --enable-windows-desktop
+
+      - name: Install Frontend Dependencies
+        working-directory: td_trader/frontend
+        run: flutter pub get
+
+      - name: Build Windows Desktop Release
+        working-directory: td_trader/frontend
+        run: flutter build windows --release
+
+      - name: Compress Windows Distribution
+        run: |
+          mkdir artifacts
+          Compress-Archive -Path td_trader/frontend/build/windows/x64/runner/Release/* -DestinationPath artifacts/TDTrader-Windows-x64.zip
+
+      - name: Upload Windows Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-release
+          path: artifacts/TDTrader-Windows-x64.zip
+
+  # ==========================================
+  # 4. BUILD MACOS DESKTOP APP
+  # ==========================================
+  build-macos:
+    name: Build macOS Desktop App
+    runs-on: macos-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Enable macOS Desktop Support
+        run: flutter config --enable-macos-desktop
+
+      - name: Install Frontend Dependencies
+        working-directory: td_trader/frontend
+        run: flutter pub get
+
+      - name: Build macOS Release App
+        working-directory: td_trader/frontend
+        run: flutter build macos --release
+
+      - name: Package macOS Zip Archive
+        run: |
+          mkdir -p artifacts
+          cd td_trader/frontend/build/macos/Build/Products/Release/
+          zip -r ../../../../../../../artifacts/TDTrader-macOS.zip td_trader.app
+
+      - name: Upload macOS Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-release
+          path: artifacts/TDTrader-macOS.zip
+
+  # ==========================================
+  # 5. BUILD WEB APPLICATION
+  # ==========================================
+  build-web:
+    name: Build Web App
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Install Frontend Dependencies
+        working-directory: td_trader/frontend
+        run: flutter pub get
+
+      - name: Build Web Release
+        working-directory: td_trader/frontend
+        run: flutter build web --release
+
+      - name: Package Web App Zip
+        run: |
+          mkdir -p artifacts
+          cd td_trader/frontend/build/web
+          zip -r ../../../../artifacts/TDTrader-Web-App.zip .
+
+      - name: Upload Web Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-release
+          path: artifacts/TDTrader-Web-App.zip
+
+  # ==========================================
+  # 6. AGGREGATE ARTIFACTS & CREATE GITHUB RELEASE
+  # ==========================================
+  create-release:
+    name: Publish Official GitHub Release
+    needs: [build-android, build-linux, build-windows, build-macos, build-web]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Download Android Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: android-release
+          path: release_assets
+
+      - name: Download Linux Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: linux-release
+          path: release_assets
+
+      - name: Download Windows Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-release
+          path: release_assets
+
+      - name: Download macOS Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: macos-release
+          path: release_assets
+
+      - name: Download Web Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: web-release
+          path: release_assets
+
+      - name: Copy MetaTrader Expert Advisors
+        run: |
+          cp td_trader/metatrader_bridge/experts/TDTrader_Bridge_MT4.mq4 release_assets/
+          cp td_trader/metatrader_bridge/experts/TDTrader_Bridge_MT5.mq5 release_assets/
+
+      - name: Generate SHA-256 Checksums
+        run: |
+          cd release_assets
+          sha256sum * > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+
+      - name: Determine Tag
+        id: vars
+        run: |
+          if [ -n "${{ github.event.inputs.release_tag }}" ]; then
+            echo "tag=${{ github.event.inputs.release_tag }}" >> $GITHUB_OUTPUT
+          else
+            echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create GitHub Release with Downloads
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.vars.outputs.tag }}
+          name: "TD TRADER Release ${{ steps.vars.outputs.tag }}"
+          body: |
+            ## TD TRADER – Advanced AI Trading Ecosystem
+            **Tagline:** *Trade Smarter. Think Faster. Let AI Explain.*
+
+            Official release package containing cross-platform binaries, Web SPA bundle, and MetaTrader 4/5 zero-latency Expert Advisors.
+
+            ### 🚀 Direct App Downloads
+            | Platform | Download File | Description |
+            | :--- | :--- | :--- |
+            | 📱 **Android** | [`TDTrader-Android.apk`](https://github.com/${{ github.repository }}/releases/download/${{ steps.vars.outputs.tag }}/TDTrader-Android.apk) | Standalone APK for Android 8.0+ |
+            | 💻 **Windows** | [`TDTrader-Windows-x64.zip`](https://github.com/${{ github.repository }}/releases/download/${{ steps.vars.outputs.tag }}/TDTrader-Windows-x64.zip) | Portable 64-bit Windows Desktop App |
+            | 🐧 **Linux** | [`TDTrader-Linux-x64.tar.gz`](https://github.com/${{ github.repository }}/releases/download/${{ steps.vars.outputs.tag }}/TDTrader-Linux-x64.tar.gz) | Linux x86_64 Desktop Distribution |
+            | 🍎 **macOS** | [`TDTrader-macOS.zip`](https://github.com/${{ github.repository }}/releases/download/${{ steps.vars.outputs.tag }}/TDTrader-macOS.zip) | Universal macOS Desktop App |
+            | 🌐 **Web** | [`TDTrader-Web-App.zip`](https://github.com/${{ github.repository }}/releases/download/${{ steps.vars.outputs.tag }}/TDTrader-Web-App.zip) | Production Web Client (SPA) |
+
+            ### ⚡ MetaTrader 4 & 5 Bridge Connectors
+            * [Download `TDTrader_Bridge_MT4.mq4`](https://github.com/${{ github.repository }}/releases/download/${{ steps.vars.outputs.tag }}/TDTrader_Bridge_MT4.mq4)
+            * [Download `TDTrader_Bridge_MT5.mq5`](https://github.com/${{ github.repository }}/releases/download/${{ steps.vars.outputs.tag }}/TDTrader_Bridge_MT5.mq5)
+
+            ### 🔒 Integrity Checksums (SHA-256)
+            Download [`SHA256SUMS.txt`](https://github.com/${{ github.repository }}/releases/download/${{ steps.vars.outputs.tag }}/SHA256SUMS.txt) to verify file authenticity.
+          files: |
+            release_assets/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

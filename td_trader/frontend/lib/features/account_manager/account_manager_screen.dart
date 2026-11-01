@@ -1,0 +1,322 @@
+// MODULE 5: MULTI-ACCOUNT MANAGER & METATRADER BRIDGE SCREEN
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../core/theme/app_theme.dart';
+import '../../core/models/models.dart';
+import '../../core/providers/app_state_providers.dart';
+import '../../core/services/api_service.dart';
+
+class AccountManagerScreen extends StatefulWidget {
+  const AccountManagerScreen({super.key});
+
+  @override
+  State<AccountManagerScreen> createState() => _AccountManagerScreenState();
+}
+
+class _AccountManagerScreenState extends State<AccountManagerScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<AccountProvider>(context, listen: false).loadAccounts();
+    });
+  }
+
+  void _showAddAccountDialog(BuildContext context) {
+    final accountNumController = TextEditingController();
+    final brokerController = TextEditingController(text: 'MetaQuotes Demo Server');
+    final serverController = TextEditingController(text: 'MetaQuotes-Demo');
+    final passwordController = TextEditingController();
+    String platform = 'MT5_DEMO';
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          backgroundColor: AppColors.surface,
+          title: const Text('CONNECT METATRADER ACCOUNT', style: TextStyle(color: AppColors.primaryCyan, fontSize: 16)),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                DropdownButtonFormField<String>(
+                  value: platform,
+                  decoration: const InputDecoration(labelText: 'Platform & Type'),
+                  items: const [
+                    DropdownMenuItem(value: 'MT4_DEMO', child: Text('MT4 Demo Account')),
+                    DropdownMenuItem(value: 'MT4_LIVE', child: Text('MT4 Live Account')),
+                    DropdownMenuItem(value: 'MT5_DEMO', child: Text('MT5 Demo Account')),
+                    DropdownMenuItem(value: 'MT5_LIVE', child: Text('MT5 Live Account')),
+                    DropdownMenuItem(value: 'PAPER_TRADING', child: Text('TD Paper Sandbox')),
+                  ],
+                  onChanged: (val) => setDialogState(() => platform = val!),
+                ),
+                const SizedBox(height: 10),
+                TextField(
+                  controller: accountNumController,
+                  decoration: const InputDecoration(labelText: 'Account Login / Number'),
+                ),
+                const SizedBox(height: 10),
+                TextField(
+                  controller: brokerController,
+                  decoration: const InputDecoration(labelText: 'Broker Name'),
+                ),
+                const SizedBox(height: 10),
+                TextField(
+                  controller: serverController,
+                  decoration: const InputDecoration(labelText: 'Server Name'),
+                ),
+                const SizedBox(height: 10),
+                TextField(
+                  controller: passwordController,
+                  obscureText: true,
+                  decoration: const InputDecoration(
+                    labelText: 'Password (AES-256 Encrypted)',
+                    helperText: 'Credentials encrypted immediately. Never stored in plaintext.',
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('CANCEL', style: TextStyle(color: AppColors.textSecondary)),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                try {
+                  await apiService.addAccount({
+                    'account_number': accountNumController.text.trim(),
+                    'broker_name': brokerController.text.trim(),
+                    'server': serverController.text.trim(),
+                    'platform': platform,
+                    'password': passwordController.text,
+                    'balance': 10000.0,
+                    'is_auto_trading_enabled': false,
+                    'is_authorized_live': false,
+                  });
+                  Navigator.pop(ctx);
+                  Provider.of<AccountProvider>(context, listen: false).loadAccounts();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Account connected successfully!')),
+                  );
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Failed: $e'), backgroundColor: AppColors.bearishRed),
+                  );
+                }
+              },
+              child: const Text('CONNECT ACCOUNT'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showLiveAuthorizationDialog(BuildContext context, TradingAccountModel account) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        title: const Text('EXPLICIT LIVE CAPITAL AUTHORIZATION', style: TextStyle(color: AppColors.warningAmber, fontSize: 16)),
+        content: Text(
+          'You are authorizing live automated trading for account #${account.accountNumber} (${account.brokerName}).\n\n'
+          'Mandatory Fintech Notice: Real capital will be subjected to automated execution. '
+          'Smart Risk Guardian will strictly enforce your risk gates.\n\n'
+          'Do you explicitly authorize live automated trading?',
+          style: const TextStyle(color: AppColors.textPrimary, height: 1.4),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('DECLINE', style: TextStyle(color: AppColors.textSecondary)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.warningAmber),
+            onPressed: () async {
+              Navigator.pop(ctx);
+              await Provider.of<AccountProvider>(context, listen: false).authorizeLive(true);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Live trading explicitly authorized for this account.')),
+              );
+            },
+            child: const Text('EXPLICITLY AUTHORIZE', style: TextStyle(color: Colors.black)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final accountProvider = Provider.of<AccountProvider>(context);
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('MULTI-ACCOUNT MANAGER'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.add_circle_outline, color: AppColors.primaryCyan),
+            onPressed: () => _showAddAccountDialog(context),
+            tooltip: 'Connect MetaTrader Account',
+          ),
+        ],
+      ),
+      body: accountProvider.isLoading
+          ? const Center(child: CircularProgressIndicator(color: AppColors.primaryCyan))
+          : ListView(
+              padding: const EdgeInsets.all(16),
+              children: [
+                // Account Isolation Notice
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceLight,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: AppColors.border),
+                  ),
+                  child: Row(
+                    children: const [
+                      Icon(Icons.lock_outline, size: 16, color: AppColors.primaryCyan),
+                      SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Strict Account Isolation Engaged: Balances are never commingled. Each account executes with independent credentials and dedicated risk gates.',
+                          style: TextStyle(color: AppColors.textSecondary, fontSize: 11),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // Accounts List
+                ...accountProvider.accounts.map((acct) {
+                  final isActive = accountProvider.activeAccount?.id == acct.id;
+                  final isLive = acct.platform.contains('LIVE');
+
+                  return Card(
+                    color: AppColors.surface,
+                    margin: const EdgeInsets.only(bottom: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      side: BorderSide(color: isActive ? AppColors.primaryCyan : AppColors.border, width: isActive ? 1.5 : 1.0),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(
+                                    isLive ? Icons.account_balance : Icons.analytics_outlined,
+                                    color: isLive ? AppColors.warningAmber : AppColors.primaryCyan,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        '#${acct.accountNumber} • ${acct.platform.replaceAll("_", " ")}',
+                                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                                      ),
+                                      Text(
+                                        acct.brokerName,
+                                        style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                              if (isActive)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.primaryCyan.withOpacity(0.2),
+                                    borderRadius: BorderRadius.circular(4),
+                                    border: Border.all(color: AppColors.primaryCyan),
+                                  ),
+                                  child: const Text('ACTIVE', style: TextStyle(color: AppColors.primaryCyan, fontSize: 10, fontWeight: FontWeight.bold)),
+                                )
+                              else
+                                TextButton(
+                                  onPressed: () => accountProvider.switchActiveAccount(acct),
+                                  child: const Text('SELECT', style: TextStyle(color: AppColors.primaryCyan)),
+                                ),
+                            ],
+                          ),
+                          const Divider(color: AppColors.border, height: 20),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              _buildMetric('Balance', '\$${acct.balance.toStringAsFixed(2)}'),
+                              _buildMetric('Equity', '\$${acct.equity.toStringAsFixed(2)}'),
+                              _buildMetric('Free Margin', '\$${acct.freeMargin.toStringAsFixed(2)}'),
+                              _buildMetric('Floating PnL', '\$${acct.floatingPnl.toStringAsFixed(2)}', color: acct.floatingPnl >= 0 ? AppColors.bullishGreen : AppColors.bearishRed),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              // Auto-trading toggle
+                              Row(
+                                children: [
+                                  Switch(
+                                    value: acct.isAutoTradingEnabled,
+                                    activeColor: AppColors.bullishGreen,
+                                    onChanged: (val) {
+                                      if (isLive && val && !acct.isAuthorizedLive) {
+                                        _showLiveAuthorizationDialog(context, acct);
+                                      } else {
+                                        accountProvider.toggleAutoTrading(val);
+                                      }
+                                    },
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    acct.isAutoTradingEnabled ? 'Auto Trading ON' : 'Auto Trading OFF',
+                                    style: TextStyle(
+                                      color: acct.isAutoTradingEnabled ? AppColors.bullishGreen : AppColors.textSecondary,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              if (isLive && !acct.isAuthorizedLive)
+                                TextButton.icon(
+                                  icon: const Icon(Icons.security, size: 14, color: AppColors.warningAmber),
+                                  label: const Text('AUTHORIZE LIVE', style: TextStyle(color: AppColors.warningAmber, fontSize: 11, fontWeight: FontWeight.bold)),
+                                  onPressed: () => _showLiveAuthorizationDialog(context, acct),
+                                ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }),
+              ],
+            ),
+    );
+  }
+
+  Widget _buildMetric(String label, String val, {Color? color}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: const TextStyle(color: AppColors.textMuted, fontSize: 10)),
+        const SizedBox(height: 2),
+        Text(val, style: TextStyle(color: color ?? Colors.white, fontWeight: FontWeight.bold, fontSize: 13)),
+      ],
+    );
+  }
+}
+
