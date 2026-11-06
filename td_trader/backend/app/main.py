@@ -3,6 +3,7 @@ Production ASGI server with CORS, WebSockets, background scanner tasks, and API 
 """
 
 import asyncio
+from contextlib import asynccontextmanager
 from starlette.applications import Starlette
 from starlette.middleware import Middleware
 from starlette.middleware.cors import CORSMiddleware
@@ -103,15 +104,18 @@ middleware = [
     )
 ]
 
-async def on_startup():
+@asynccontextmanager
+async def lifespan(app):
     init_db()
     # Pre-warm scanner
     asyncio.create_task(asyncio.to_thread(ai_market_scanner.scan_all_markets))
+    yield
 
 app = Starlette(
     debug=True,
     routes=routes,
     middleware=middleware,
-    on_startup=[on_startup]
+    lifespan=lifespan
 )
+
 
