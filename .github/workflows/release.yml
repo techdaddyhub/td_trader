@@ -255,13 +255,20 @@ jobs:
 
       - name: Build macOS Release App
         working-directory: td_trader/frontend
-        run: flutter build macos --release --no-codesign
+        run: flutter build macos --release
 
       - name: Package macOS Zip Archive
         run: |
           mkdir -p artifacts
-          cd td_trader/frontend/build/macos/Build/Products/Release/
-          zip -r ../../../../../../../artifacts/TDTrader-macOS.zip td_trader.app
+          APP_PATH=$(find td_trader/frontend/build/macos -name "*.app" 2>/dev/null | head -n 1)
+          if [ -n "$APP_PATH" ] && [ -d "$APP_PATH" ]; then
+            cd "$(dirname "$APP_PATH")"
+            zip -r "$GITHUB_WORKSPACE/artifacts/TDTrader-macOS.zip" "$(basename "$APP_PATH")"
+          else
+            echo "ERROR: macOS .app bundle not found"
+            find td_trader/frontend/build -maxdepth 5 || true
+            exit 1
+          fi
 
       - name: Upload macOS Artifact
         uses: actions/upload-artifact@v4
