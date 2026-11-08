@@ -331,10 +331,16 @@ jobs:
           path: release_assets
           merge-multiple: true
 
-      - name: Copy MetaTrader Expert Advisors
+      - name: Copy MetaTrader Expert Advisors & User Guide
         run: |
           cp td_trader/metatrader_bridge/experts/TDTrader_Bridge_MT4.mq4 release_assets/
           cp td_trader/metatrader_bridge/experts/TDTrader_Bridge_MT5.mq5 release_assets/
+          if [ -f "docs/TD_TRADER_USER_MANUAL_AND_BUYERS_GUIDE_2026.pdf" ]; then
+            cp docs/TD_TRADER_USER_MANUAL_AND_BUYERS_GUIDE_2026.pdf release_assets/
+          fi
+          if [ -f "td_trader/frontend/assets/images/app_icon.png" ]; then
+            cp td_trader/frontend/assets/images/app_icon.png release_assets/
+          fi
 
       - name: Flatten Directory Structure
         run: |
@@ -373,6 +379,10 @@ jobs:
             **Owner:** TechDaddy | **Copyright:** © 2026 TechDaddy. All rights reserved.
 
             Official multi-platform release containing compiled applications, Web SPA, and MetaTrader 4/5 zero-latency Expert Advisors.
+
+            ### 📚 Official Documentation & Buyer's Guide
+            * 📖 **Complete User Manual & Setup Guide (PDF):** [Download `TD_TRADER_USER_MANUAL_AND_BUYERS_GUIDE_2026.pdf`](https://github.com/${{ github.repository }}/releases/download/${{ steps.vars.outputs.tag }}/TD_TRADER_USER_MANUAL_AND_BUYERS_GUIDE_2026.pdf) (Includes Android setup, MT4/MT5 connection steps, and tool walkthroughs)
+            * 🎨 **Official TD Binance-Gold App Icon:** [Download `app_icon.png`](https://github.com/${{ github.repository }}/releases/download/${{ steps.vars.outputs.tag }}/app_icon.png)
 
             ### 🚀 Direct App Downloads
             * 📱 **Android App (APK):** [Download `TDTrader-Android.apk`](https://github.com/${{ github.repository }}/releases/download/${{ steps.vars.outputs.tag }}/TDTrader-Android.apk) (Android 8.0+)
