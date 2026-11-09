@@ -5,6 +5,7 @@ import '../../core/theme/app_theme.dart';
 import '../../core/models/models.dart';
 import '../../core/providers/app_state_providers.dart';
 import '../../core/services/api_service.dart';
+import '../../core/widgets/connect_account_dialog.dart';
 
 class AccountManagerScreen extends StatefulWidget {
   const AccountManagerScreen({super.key});
@@ -23,96 +24,7 @@ class _AccountManagerScreenState extends State<AccountManagerScreen> {
   }
 
   void _showAddAccountDialog(BuildContext context) {
-    final accountNumController = TextEditingController();
-    final brokerController = TextEditingController(text: 'MetaQuotes Demo Server');
-    final serverController = TextEditingController(text: 'MetaQuotes-Demo');
-    final passwordController = TextEditingController();
-    String platform = 'MT5_DEMO';
-
-    showDialog(
-      context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setDialogState) => AlertDialog(
-          backgroundColor: AppColors.surface,
-          title: const Text('CONNECT METATRADER ACCOUNT', style: TextStyle(color: AppColors.primaryCyan, fontSize: 16)),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                DropdownButtonFormField<String>(
-                  value: platform,
-                  decoration: const InputDecoration(labelText: 'Platform & Type'),
-                  items: const [
-                    DropdownMenuItem(value: 'MT4_DEMO', child: Text('MT4 Demo Account')),
-                    DropdownMenuItem(value: 'MT4_LIVE', child: Text('MT4 Live Account')),
-                    DropdownMenuItem(value: 'MT5_DEMO', child: Text('MT5 Demo Account')),
-                    DropdownMenuItem(value: 'MT5_LIVE', child: Text('MT5 Live Account')),
-                    DropdownMenuItem(value: 'PAPER_TRADING', child: Text('TD Paper Sandbox')),
-                  ],
-                  onChanged: (val) => setDialogState(() => platform = val!),
-                ),
-                const SizedBox(height: 10),
-                TextField(
-                  controller: accountNumController,
-                  decoration: const InputDecoration(labelText: 'Account Login / Number'),
-                ),
-                const SizedBox(height: 10),
-                TextField(
-                  controller: brokerController,
-                  decoration: const InputDecoration(labelText: 'Broker Name'),
-                ),
-                const SizedBox(height: 10),
-                TextField(
-                  controller: serverController,
-                  decoration: const InputDecoration(labelText: 'Server Name'),
-                ),
-                const SizedBox(height: 10),
-                TextField(
-                  controller: passwordController,
-                  obscureText: true,
-                  decoration: const InputDecoration(
-                    labelText: 'Password (AES-256 Encrypted)',
-                    helperText: 'Credentials encrypted immediately. Never stored in plaintext.',
-                  ),
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('CANCEL', style: TextStyle(color: AppColors.textSecondary)),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                try {
-                  await apiService.addAccount({
-                    'account_number': accountNumController.text.trim(),
-                    'broker_name': brokerController.text.trim(),
-                    'server': serverController.text.trim(),
-                    'platform': platform,
-                    'password': passwordController.text,
-                    'balance': 10000.0,
-                    'is_auto_trading_enabled': false,
-                    'is_authorized_live': false,
-                  });
-                  Navigator.pop(ctx);
-                  Provider.of<AccountProvider>(context, listen: false).loadAccounts();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Account connected successfully!')),
-                  );
-                } catch (e) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Failed: $e'), backgroundColor: AppColors.bearishRed),
-                  );
-                }
-              },
-              child: const Text('CONNECT ACCOUNT'),
-            ),
-          ],
-        ),
-      ),
-    );
+    showConnectMetaTraderDialog(context);
   }
 
   void _showLiveAuthorizationDialog(BuildContext context, TradingAccountModel account) {
