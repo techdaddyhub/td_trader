@@ -222,7 +222,21 @@ class ApiService {
       throw Exception('Failed to close position: ${response.body}');
     }
   }
+
+  Future<Map<String, dynamic>> checkHealth([String? customUrl]) async {
+    var target = (customUrl ?? AppConfig.baseUrl).trim();
+    if (!target.startsWith('http://') && !target.startsWith('https://')) {
+      target = 'http://$target';
+    }
+    final url = target.endsWith('/') ? '${target}health' : '$target/health';
+    final response = await http.get(Uri.parse(url)).timeout(const Duration(seconds: 5));
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    }
+    throw Exception('Status code: ${response.statusCode}');
+  }
 }
 
 final apiService = ApiService();
+
 

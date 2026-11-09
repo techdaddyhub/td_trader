@@ -35,6 +35,91 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: AppColors.surface,
+        elevation: 1,
+        title: Row(
+          children: [
+            const TechDaddyLogo(size: 28, showText: false),
+            const SizedBox(width: 10),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: const [
+                Text(
+                  'TD TRADER',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 16,
+                    letterSpacing: 1.5,
+                    color: AppColors.binanceGold,
+                  ),
+                ),
+                Text(
+                  'AI TRADING ECOSYSTEM',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 9,
+                    letterSpacing: 0.8,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+        actions: [
+          // Quick Connect PC / Broker Status Badge
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
+            child: InkWell(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const SettingsScreen()),
+                );
+              },
+              borderRadius: BorderRadius.circular(16),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceLight,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppColors.binanceGold.withOpacity(0.4)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: const [
+                    Icon(Icons.wifi, size: 14, color: AppColors.binanceGold),
+                    SizedBox(width: 5),
+                    Text(
+                      'CONNECT PC',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.binanceGold,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          // Prominent Gear Icon for Settings & PC Connection
+          IconButton(
+            icon: const Icon(Icons.settings, color: AppColors.binanceGold, size: 26),
+            tooltip: 'Settings & Connect PC/Broker',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const SettingsScreen()),
+              );
+            },
+          ),
+          const SizedBox(width: 4),
+        ],
+      ),
       drawer: Drawer(
         backgroundColor: AppColors.surface,
         child: ListView(

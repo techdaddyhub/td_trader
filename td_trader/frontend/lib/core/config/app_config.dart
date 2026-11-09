@@ -7,10 +7,22 @@ class AppConfig {
   static const String copyright = 'Copyright © 2026 TechDaddy. All rights reserved.';
   static const String organization = 'TechDaddy Fintech Systems';
   
-  // API & WebSocket Endpoints (Configurable for local / VPS / production)
-  static const String baseUrl = 'http://127.0.0.1:8000';
+  // API & WebSocket Endpoints (Dynamically configurable at runtime)
+  static String baseUrl = 'http://127.0.0.1:8000';
   static const String apiPrefix = '/api/v1';
-  static const String wsUrl = 'ws://127.0.0.1:8000/ws';
+  static String get wsUrl => baseUrl.replaceFirst('http', 'ws') + '/ws';
+  static String get apiBaseUrl => '$baseUrl$apiPrefix';
+  
+  static void setBaseUrl(String newUrl) {
+    var trimmed = newUrl.trim();
+    if (!trimmed.startsWith('http://') && !trimmed.startsWith('https://')) {
+      trimmed = 'http://$trimmed';
+    }
+    if (trimmed.endsWith('/')) {
+      trimmed = trimmed.substring(0, trimmed.length - 1);
+    }
+    baseUrl = trimmed;
+  }
   
   // Supported Markets
   static const List<String> marketCategories = [
@@ -32,4 +44,3 @@ class AppConfig {
     'D1'
   ];
 }
-
