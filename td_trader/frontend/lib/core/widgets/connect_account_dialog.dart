@@ -145,7 +145,7 @@ void showConnectMetaTraderDialog(BuildContext context) {
                       ),
                       DropdownMenuItem(
                         value: 'PAPER_TRADING',
-                        child: Text('🛡️ TD Risk-Free Paper Simulator ($10k)', style: TextStyle(color: Colors.white)),
+                        child: Text('🛡️ TD Risk-Free Paper Simulator (\$10k)', style: TextStyle(color: Colors.white)),
                       ),
                     ],
                     onChanged: (val) {

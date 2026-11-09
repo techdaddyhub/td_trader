@@ -106,7 +106,7 @@ class _TradingTerminalScreenState extends State<TradingTerminalScreen> {
         await Provider.of<AccountProvider>(context, listen: false).loadAccounts();
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Instant $10,000 Paper Trading Demo Account activated!'),
+            content: Text('Instant \$10,000 Paper Trading Demo Account activated!'),
             backgroundColor: AppColors.bullishGreen,
           ),
         );
@@ -438,7 +438,7 @@ class _TradingTerminalScreenState extends State<TradingTerminalScreen> {
                       ),
                     ),
                     title: Text('${pos.instrument} - ${pos.lots.toStringAsFixed(2)} Lots', style: const TextStyle(fontWeight: FontWeight.bold)),
-                    subtitle: Text('Entry: ${pos.entryPrice} | SL: ${pos.stopLoss} | TP: ${pos.takeProfit}'),
+                    subtitle: Text('Entry: ${pos.openPrice} | SL: ${pos.stopLoss} | TP: ${pos.takeProfit}'),
                     trailing: Text(
                       '${pos.floatingPnl >= 0 ? "+" : ""}\$${pos.floatingPnl.toStringAsFixed(2)}',
                       style: TextStyle(

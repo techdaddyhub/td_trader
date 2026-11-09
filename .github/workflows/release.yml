@@ -50,7 +50,7 @@ jobs:
           cp pubspec.yaml.orig pubspec.yaml
           mkdir -p assets/images assets/audio
           touch assets/images/.gitkeep assets/audio/.gitkeep
-          if [ -d "android_res" ]; then
+          if [ -d "android_res" ] && [ -d "android/app/src/main/res" ]; then
             echo "Injecting custom TD Robot icons into Android mipmap directories..."
             cp -r android_res/* android/app/src/main/res/
           fi
@@ -104,10 +104,6 @@ jobs:
           cp pubspec.yaml.orig pubspec.yaml
           mkdir -p assets/images assets/audio
           touch assets/images/.gitkeep assets/audio/.gitkeep
-          if [ -d "android_res" ]; then
-            echo "Injecting custom TD Robot icons into Android mipmap directories..."
-            cp -r android_res/* android/app/src/main/res/
-          fi
           flutter pub get
 
       - name: Build Web Release
@@ -162,10 +158,6 @@ jobs:
           cp pubspec.yaml.orig pubspec.yaml
           mkdir -p assets/images assets/audio
           touch assets/images/.gitkeep assets/audio/.gitkeep
-          if [ -d "android_res" ]; then
-            echo "Injecting custom TD Robot icons into Android mipmap directories..."
-            cp -r android_res/* android/app/src/main/res/
-          fi
           flutter pub get
 
       - name: Build Linux Desktop Release
@@ -215,10 +207,6 @@ jobs:
           cp pubspec.yaml.orig pubspec.yaml
           mkdir -p assets/images assets/audio
           touch assets/images/.gitkeep assets/audio/.gitkeep
-          if [ -d "android_res" ]; then
-            echo "Injecting custom TD Robot icons into Android mipmap directories..."
-            cp -r android_res/* android/app/src/main/res/
-          fi
           flutter pub get
 
       - name: Build Windows Desktop Release
@@ -267,10 +255,6 @@ jobs:
           cp pubspec.yaml.orig pubspec.yaml
           mkdir -p assets/images assets/audio
           touch assets/images/.gitkeep assets/audio/.gitkeep
-          if [ -d "android_res" ]; then
-            echo "Injecting custom TD Robot icons into Android mipmap directories..."
-            cp -r android_res/* android/app/src/main/res/
-          fi
           flutter pub get
 
       - name: Build macOS Release App
