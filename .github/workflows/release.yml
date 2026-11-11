@@ -50,9 +50,8 @@ jobs:
           cp pubspec.yaml.orig pubspec.yaml
           mkdir -p assets/images assets/audio
           touch assets/images/.gitkeep assets/audio/.gitkeep
-          if [ -d "android_res" ] && [ -d "android/app/src/main/res" ]; then
-            echo "Injecting custom TD Robot icons into Android mipmap directories..."
-            cp -r android_res/* android/app/src/main/res/
+          if [ -f "desktop_res/apply_desktop_branding.py" ]; then
+            python3 desktop_res/apply_desktop_branding.py android
           fi
           flutter pub get
 
@@ -104,6 +103,9 @@ jobs:
           cp pubspec.yaml.orig pubspec.yaml
           mkdir -p assets/images assets/audio
           touch assets/images/.gitkeep assets/audio/.gitkeep
+          if [ -f "desktop_res/apply_desktop_branding.py" ]; then
+            python3 desktop_res/apply_desktop_branding.py web
+          fi
           flutter pub get
 
       - name: Build Web Release
@@ -158,6 +160,9 @@ jobs:
           cp pubspec.yaml.orig pubspec.yaml
           mkdir -p assets/images assets/audio
           touch assets/images/.gitkeep assets/audio/.gitkeep
+          if [ -f "desktop_res/apply_desktop_branding.py" ]; then
+            python3 desktop_res/apply_desktop_branding.py linux
+          fi
           flutter pub get
 
       - name: Build Linux Desktop Release
@@ -167,6 +172,10 @@ jobs:
       - name: Package Linux Binary Archive
         run: |
           mkdir -p artifacts
+          if [ -d "td_trader/frontend/desktop_res/linux" ]; then
+            cp td_trader/frontend/desktop_res/linux/td_trader.png td_trader/frontend/build/linux/x64/release/bundle/
+            cp td_trader/frontend/desktop_res/linux/TD_TRADER.desktop td_trader/frontend/build/linux/x64/release/bundle/
+          fi
           tar -czvf artifacts/TDTrader-Linux-x64.tar.gz -C td_trader/frontend/build/linux/x64/release/bundle .
 
       - name: Upload Linux Artifact
@@ -207,6 +216,9 @@ jobs:
           cp pubspec.yaml.orig pubspec.yaml
           mkdir -p assets/images assets/audio
           touch assets/images/.gitkeep assets/audio/.gitkeep
+          if [ -f "desktop_res/apply_desktop_branding.py" ]; then
+            python3 desktop_res/apply_desktop_branding.py windows || python desktop_res/apply_desktop_branding.py windows
+          fi
           flutter pub get
 
       - name: Build Windows Desktop Release
@@ -255,6 +267,9 @@ jobs:
           cp pubspec.yaml.orig pubspec.yaml
           mkdir -p assets/images assets/audio
           touch assets/images/.gitkeep assets/audio/.gitkeep
+          if [ -f "desktop_res/apply_desktop_branding.py" ]; then
+            python3 desktop_res/apply_desktop_branding.py macos
+          fi
           flutter pub get
 
       - name: Build macOS Release App

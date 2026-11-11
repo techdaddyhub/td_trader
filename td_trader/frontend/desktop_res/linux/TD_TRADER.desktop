@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=TD TRADER
+GenericName=AI Trading Terminal
+Comment=Advanced AI Trading Ecosystem by TechDaddy
+Exec=td_trader
+Icon=td_trader
+Terminal=false
+Categories=Finance;Network;
+StartupWMClass=td_trader

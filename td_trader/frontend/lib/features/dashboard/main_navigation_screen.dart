@@ -40,7 +40,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         elevation: 1,
         title: Row(
           children: [
-            const TechDaddyLogo(size: 28, showText: false),
+            const TechDaddyLogo(size: 34, showText: false),
             const SizedBox(width: 10),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -136,7 +136,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                 children: [
                   Row(
                     children: const [
-                      TechDaddyLogo(size: 38, showText: false),
+                      TechDaddyLogo(size: 46, showText: false),
                       SizedBox(width: 12),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,

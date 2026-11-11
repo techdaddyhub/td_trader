@@ -1,5 +1,5 @@
 // Copyright (c) 2026 TechDaddy. All rights reserved.
-// TD TRADER - TechDaddy Official Logo & Monogram Widget (Binance Gold Edition)
+// TD TRADER - TechDaddy Official Robot Icon & TD Logo Widget (Binance Gold Edition)
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 
@@ -17,11 +17,56 @@ class TechDaddyLogo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final fallbackMonogram = Stack(
+      alignment: Alignment.center,
+      children: [
+        Transform.rotate(
+          angle: 0.785398,
+          child: Container(
+            width: size * 0.62,
+            height: size * 0.62,
+            decoration: BoxDecoration(
+              border: Border.all(
+                color: AppColors.binanceGold.withValues(alpha: 0.25),
+                width: 1.2,
+              ),
+            ),
+          ),
+        ),
+        RichText(
+          text: TextSpan(
+            children: [
+              TextSpan(
+                text: 'T',
+                style: TextStyle(
+                  fontFamily: 'Roboto',
+                  fontWeight: FontWeight.w900,
+                  fontSize: size * 0.42,
+                  letterSpacing: -1.0,
+                  color: AppColors.binanceGold,
+                ),
+              ),
+              TextSpan(
+                text: 'D',
+                style: TextStyle(
+                  fontFamily: 'Roboto',
+                  fontWeight: FontWeight.w900,
+                  fontSize: size * 0.42,
+                  letterSpacing: -1.0,
+                  color: AppColors.binanceGoldLight,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+
     final emblem = Container(
       width: size,
       height: size,
       decoration: BoxDecoration(
-        shape: BoxShape.circle,
+        borderRadius: BorderRadius.circular(size * 0.22),
         gradient: const RadialGradient(
           center: Alignment(-0.25, -0.25),
           colors: [
@@ -32,91 +77,30 @@ class TechDaddyLogo extends StatelessWidget {
         ),
         border: Border.all(
           color: AppColors.binanceGold,
-          width: size * 0.045,
+          width: (size * 0.04).clamp(1.2, 3.0),
         ),
         boxShadow: [
           BoxShadow(
             color: AppColors.binanceGold.withValues(alpha: 0.35),
-            blurRadius: size * 0.35,
-            spreadRadius: size * 0.04,
+            blurRadius: size * 0.30,
+            spreadRadius: size * 0.03,
           ),
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.8),
+            color: Colors.black.withValues(alpha: 0.75),
             blurRadius: size * 0.2,
-            offset: const Offset(0, 4),
+            offset: const Offset(0, 3),
           ),
         ],
       ),
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          // Subtle Binance diamond geometric watermark
-          Transform.rotate(
-            angle: 0.785398, // 45 degrees
-            child: Container(
-              width: size * 0.62,
-              height: size * 0.62,
-              decoration: BoxDecoration(
-                border: Border.all(
-                  color: AppColors.binanceGold.withValues(alpha: 0.20),
-                  width: 1.2,
-                ),
-              ),
-            ),
-          ),
-          // Inner hairline gold ring
-          Container(
-            width: size * 0.84,
-            height: size * 0.84,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: AppColors.binanceGoldLight.withValues(alpha: 0.45),
-                width: 1.0,
-              ),
-            ),
-          ),
-          // Stylized "TD" Monogram
-          RichText(
-            text: TextSpan(
-              children: [
-                TextSpan(
-                  text: 'T',
-                  style: TextStyle(
-                    fontFamily: 'Roboto',
-                    fontWeight: FontWeight.w900,
-                    fontSize: size * 0.44,
-                    letterSpacing: -1.0,
-                    color: AppColors.binanceGold,
-                    shadows: [
-                      Shadow(
-                        color: AppColors.binanceGold.withValues(alpha: 0.8),
-                        blurRadius: 8,
-                      ),
-                    ],
-                  ),
-                ),
-                TextSpan(
-                  text: 'D',
-                  style: TextStyle(
-                    fontFamily: 'Roboto',
-                    fontWeight: FontWeight.w900,
-                    fontSize: size * 0.44,
-                    letterSpacing: -1.0,
-                    color: AppColors.binanceGoldLight,
-                    shadows: [
-                      Shadow(
-                        color:
-                            AppColors.binanceGoldLight.withValues(alpha: 0.9),
-                        blurRadius: 8,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(size * 0.19),
+        child: Image.asset(
+          'assets/images/app_icon.png',
+          width: size,
+          height: size,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => fallbackMonogram,
+        ),
       ),
     );
 
