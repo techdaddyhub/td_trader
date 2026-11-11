@@ -28,6 +28,7 @@ class AppConfig {
   static const List<String> marketCategories = [
     'ALL',
     'FOREX',
+    'SYNTHETICS',
     'CRYPTO',
     'METALS',
     'INDICES',

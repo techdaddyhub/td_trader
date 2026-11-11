@@ -193,7 +193,161 @@ class MasterTDTraderTestSuite(unittest.TestCase):
         self.assertEqual(sum_res.status_code, 200)
         summary = sum_res.json()
         self.assertIn("aggregated_exposure_by_market", summary)
+        self.assertIn("SYNTHETICS", summary["aggregated_exposure_by_market"])
         self.assertIn("account_summaries", summary)
+
+    # --- MODULE 6: DERIV BROKER & SYNTHETICS INTEGRATION TESTS ---
+    def test_07_deriv_broker_integration(self):
+        import asyncio
+        import time
+        import uuid
+        from unittest.mock import patch
+        from td_trader.backend.app.services.deriv_connector import deriv_connector
+        from td_trader.ai_engine.market_scanner.market_data_feed import INSTRUMENT_CATALOG
+        from td_trader.backend.app.models.entities import Position
+
+        # 1. Verify Deriv Synthetic Indices catalog & symbol mappings
+        for sym, expected_deriv in [("V75", "R_75"), ("V75_1S", "1HZ75V"), ("BOOM1000", "BOOM1000"), ("STEP", "stpRNG")]:
+            self.assertIn(sym, INSTRUMENT_CATALOG)
+            self.assertEqual(INSTRUMENT_CATALOG[sym]["category"], "SYNTHETICS")
+            self.assertEqual(deriv_connector.to_deriv_symbol(sym), expected_deriv)
+            self.assertEqual(deriv_connector.to_td_symbol(expected_deriv), sym)
+
+        # 2. Verify Deriv instruments REST endpoint
+        inst_res = self.client.get("/api/v1/brokers/deriv/instruments")
+        self.assertEqual(inst_res.status_code, 200)
+        inst_list = inst_res.json()
+        self.assertTrue(any(item["td_symbol"] == "V75" and item["deriv_symbol"] == "R_75" for item in inst_list))
+
+        # 3. Verify encrypted credential packing/unpacking & account creation for Deriv API Demo & Live
+        cred_json = json.dumps({"api_token": "deriv_test_token_xyz", "app_id": "54321"})
+        create_res = self.client.post("/api/v1/accounts/", json={
+            "account_number": "VRTC999888",
+            "broker_name": "Deriv Native WS API",
+            "server": "ws.derivws.com (AppID: 54321)",
+            "platform": "DERIV_API_DEMO",
+            "currency": "USD",
+            "password": cred_json,
+            "balance": 10000.0,
+            "is_auto_trading_enabled": True,
+            "is_authorized_live": False,
+        })
+        self.assertEqual(create_res.status_code, 200)
+        acct_id = create_res.json()["id"]
+
+        db = SessionLocal()
+        try:
+            acct = db.query(TradingAccount).filter(TradingAccount.id == acct_id).first()
+            self.assertIsNotNone(acct)
+            token, app_id = deriv_connector.unpack_credentials(acct)
+            self.assertEqual(token, "deriv_test_token_xyz")
+            self.assertEqual(app_id, "54321")
+
+            # Live Deriv account without explicit authorization must be rejected
+            live_acct = TradingAccount(
+                user_id=1, account_number="CR777666", broker_name="Deriv Native WS API",
+                server="ws.derivws.com", platform="DERIV_API_LIVE",
+                encrypted_credentials=acct.encrypted_credentials,
+                balance=5000.0, equity=5000.0, is_authorized_live=False,
+            )
+            rejected = asyncio.run(deriv_connector.dispatch_deriv_order_async(live_acct, {
+                "instrument": "V75", "direction": "BUY", "lots": 0.1, "requested_price": 235420.5
+            }))
+            self.assertFalse(rejected["confirmed"])
+            self.assertEqual(rejected["status"], "REJECTED_UNAUTHORIZED")
+        finally:
+            db.close()
+
+        # 4. Verify Deriv token authorization & order execution endpoints with mocked WS responses
+        class FakeDerivWS:
+            def __init__(self, responses):
+                self._responses = list(responses)
+
+            async def __aenter__(self):
+                return self
+
+            async def __aexit__(self, exc_type, exc, tb):
+                return False
+
+            async def send(self, _data):
+                return None
+
+            async def recv(self):
+                return json.dumps(self._responses.pop(0))
+
+        with patch("td_trader.backend.app.services.deriv_connector.websockets.connect") as mock_ws:
+            mock_ws.return_value = FakeDerivWS([
+                {
+                    "authorize": {
+                        "loginid": "VRTC999888",
+                        "balance": 10000.0,
+                        "currency": "USD",
+                        "is_virtual": 1,
+                        "email": "trader@techdaddy.io",
+                        "fullname": "TechDaddy Quant",
+                        "account_list": [{"loginid": "VRTC999888", "currency": "USD", "is_virtual": 1}],
+                    }
+                }
+            ])
+            verify_res = self.client.post("/api/v1/brokers/deriv/verify-token", json={
+                "api_token": "deriv_test_token_xyz",
+                "app_id": "54321",
+            })
+            self.assertEqual(verify_res.status_code, 200)
+            vdata = verify_res.json()
+            self.assertTrue(vdata["verified"])
+            self.assertEqual(vdata["loginid"], "VRTC999888")
+            self.assertEqual(vdata["recommended_platform"], "DERIV_API_DEMO")
+
+        unique_contract_id = (uuid.uuid4().int % 900000000) + 100000000
+        with patch("td_trader.backend.app.services.deriv_connector.websockets.connect") as mock_ws:
+            mock_ws.return_value = FakeDerivWS([
+                {"authorize": {"loginid": "VRTC999888", "balance": 10000.0, "is_virtual": 1}},
+                {"proposal": {"id": "prop_12345", "ask_price": 10.0, "spot": 235420.5}},
+                {"buy": {"contract_id": unique_contract_id, "transaction_id": unique_contract_id + 1, "balance_after": 9990.0}},
+            ])
+            exec_res = self.client.post("/api/v1/trading/execute", json={
+                "account_id": acct_id,
+                "instrument": "V75",
+                "direction": "BUY",
+                "lots": 0.1,
+                "stop_loss": 233000.0,
+                "take_profit": 239000.0,
+            })
+            self.assertEqual(exec_res.status_code, 200, exec_res.text)
+            edata = exec_res.json()
+            self.assertEqual(edata["status"], "CONFIRMED_BY_BROKER")
+            self.assertEqual(edata["ticket"], f"DERIV_{unique_contract_id}")
+
+        # Verify closing the Deriv contract via WebSocket sell endpoint
+        db = SessionLocal()
+        try:
+            pos = db.query(Position).filter(Position.position_ticket == f"DERIV_{unique_contract_id}").first()
+            self.assertIsNotNone(pos)
+            pos_id = pos.id
+        finally:
+            db.close()
+
+        with patch("td_trader.backend.app.services.deriv_connector.websockets.connect") as mock_ws:
+            mock_ws.return_value = FakeDerivWS([
+                {"authorize": {"loginid": "VRTC999888", "balance": 9990.0, "is_virtual": 1}},
+                {"sell": {"sold_for": 15.5, "transaction_id": unique_contract_id + 2}},
+            ])
+            close_res = self.client.post(f"/api/v1/trading/positions/close/{pos_id}")
+            self.assertEqual(close_res.status_code, 200, close_res.text)
+
+        # 5. Verify Backtesting on Deriv Volatility 75 Index
+        bt_res = backtest_engine.run_backtest(BacktestRequest(
+            strategy_name="MA_Crossover",
+            instrument="V75",
+            timeframe="H1",
+            start_date="2026-01-01",
+            end_date="2026-11-01",
+            initial_balance=10000.0,
+            run_walk_forward=False,
+        ))
+        self.assertEqual(bt_res.instrument, "V75")
+        self.assertIsNotNone(bt_res.win_rate)
 
 if __name__ == "__main__":
     unittest.main()

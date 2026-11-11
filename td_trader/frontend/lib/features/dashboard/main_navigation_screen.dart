@@ -81,11 +81,13 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
               },
               borderRadius: BorderRadius.circular(16),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
                   color: AppColors.surfaceLight,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.binanceGold.withOpacity(0.4)),
+                  border: Border.all(
+                      color: AppColors.binanceGold.withValues(alpha: 0.4)),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -108,7 +110,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           ),
           // Prominent Gear Icon for Settings & PC Connection
           IconButton(
-            icon: const Icon(Icons.settings, color: AppColors.binanceGold, size: 26),
+            icon: const Icon(Icons.settings,
+                color: AppColors.binanceGold, size: 26),
             tooltip: 'Settings & Connect PC/Broker',
             onPressed: () {
               Navigator.push(
@@ -140,11 +143,18 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                         children: [
                           Text(
                             'TECHDADDY',
-                            style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16, letterSpacing: 1.5, color: AppColors.primaryCyan),
+                            style: TextStyle(
+                                fontWeight: FontWeight.w900,
+                                fontSize: 16,
+                                letterSpacing: 1.5,
+                                color: AppColors.primaryCyan),
                           ),
                           Text(
                             'TD TRADER v2.0.0',
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.white),
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 12,
+                                color: Colors.white),
                           ),
                         ],
                       ),
@@ -153,12 +163,16 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                   const SizedBox(height: 10),
                   const Text(
                     'Trade Smarter. Think Faster. Let AI Explain.',
-                    style: TextStyle(color: AppColors.textSecondary, fontSize: 11),
+                    style:
+                        TextStyle(color: AppColors.textSecondary, fontSize: 11),
                   ),
                   const SizedBox(height: 4),
                   const Text(
                     'Copyright © 2026 TechDaddy',
-                    style: TextStyle(color: AppColors.goldAccent, fontSize: 10, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                        color: AppColors.goldAccent,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold),
                   ),
                 ],
               ),
@@ -173,7 +187,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.currency_exchange, color: AppColors.bullishGreen),
+              leading: const Icon(Icons.currency_exchange,
+                  color: AppColors.bullishGreen),
               title: const Text('Trading Terminal'),
               selected: _currentIndex == 1,
               onTap: () {
@@ -182,7 +197,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.record_voice_over, color: AppColors.primaryCyan),
+              leading: const Icon(Icons.record_voice_over,
+                  color: AppColors.primaryCyan),
               title: const Text('TD AI Voice Analyst'),
               selected: _currentIndex == 2,
               onTap: () {
@@ -210,44 +226,58 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             ),
             const Divider(color: AppColors.border),
             ListTile(
-              leading: const Icon(Icons.account_balance_wallet, color: Colors.white),
+              leading:
+                  const Icon(Icons.account_balance_wallet, color: Colors.white),
               title: const Text('Multi-Account Manager'),
               onTap: () {
                 Navigator.pop(context);
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const AccountManagerScreen()));
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => const AccountManagerScreen()));
               },
             ),
             ListTile(
-              leading: const Icon(Icons.pie_chart, color: AppColors.primaryCyan),
+              leading:
+                  const Icon(Icons.pie_chart, color: AppColors.primaryCyan),
               title: const Text('Portfolio & Exposure'),
               onTap: () {
                 Navigator.pop(context);
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const PortfolioScreen()));
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (_) => const PortfolioScreen()));
               },
             ),
             ListTile(
-              leading: const Icon(Icons.auto_stories, color: AppColors.goldAccent),
+              leading:
+                  const Icon(Icons.auto_stories, color: AppColors.goldAccent),
               title: const Text('AI Trading Journal'),
               onTap: () {
                 Navigator.pop(context);
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const TradingJournalScreen()));
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => const TradingJournalScreen()));
               },
             ),
             ListTile(
-              leading: const Icon(Icons.settings, color: AppColors.textSecondary),
+              leading:
+                  const Icon(Icons.settings, color: AppColors.textSecondary),
               title: const Text('Settings & Presets'),
               onTap: () {
                 Navigator.pop(context);
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsScreen()));
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (_) => const SettingsScreen()));
               },
             ),
             const Divider(color: AppColors.border),
             ListTile(
               leading: const Icon(Icons.logout, color: AppColors.bearishRed),
-              title: const Text('Sign Out', style: TextStyle(color: AppColors.bearishRed)),
+              title: const Text('Sign Out',
+                  style: TextStyle(color: AppColors.bearishRed)),
               onTap: () {
                 Navigator.pop(context);
-                Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const AuthScreen()));
+                Navigator.pushReplacement(context,
+                    MaterialPageRoute(builder: (_) => const AuthScreen()));
               },
             ),
           ],

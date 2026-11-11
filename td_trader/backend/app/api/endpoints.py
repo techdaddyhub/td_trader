@@ -29,10 +29,11 @@ from td_trader.ai_engine.strategy_engine.strategies import STRATEGY_REGISTRY
 from td_trader.metatrader_bridge.account_sync.sync_service import account_sync_service
 from td_trader.metatrader_bridge.execution.execution_service import order_execution_service
 from td_trader.backend.app.services.paper_trading_service import paper_trading_engine
+from td_trader.backend.app.services.deriv_connector import deriv_connector
 from td_trader.backend.app.schemas.schemas import (
-    UserCreate, UserLogin, TradingAccountCreate, RiskConfigUpdate, EmergencyActionRequest,
-    ScannerFilterParams, OrderSubmitRequest, BacktestRequest, VoiceQueryRequest,
-    JournalEntryCreate
+    UserCreate, UserLogin, TradingAccountCreate, DerivTokenVerifyRequest, RiskConfigUpdate,
+    EmergencyActionRequest, ScannerFilterParams, OrderSubmitRequest, BacktestRequest,
+    VoiceQueryRequest, JournalEntryCreate
 )
 from td_trader.backend.app.websocket.connection_manager import ws_manager
 
@@ -437,7 +438,7 @@ async def submit_order_handler(request: Request):
     req = OrderSubmitRequest(**data)
     db = SessionLocal()
     try:
-        res = order_execution_service.execute_order(db, req)
+        res = await order_execution_service.execute_order_async(db, req)
         await ws_manager.broadcast_event("ORDER_CONFIRMED", res)
         return JSONResponse(res)
     except Exception as e:
@@ -478,11 +479,51 @@ async def close_position_handler(request: Request):
         pos = db.query(Position).filter(Position.id == pos_id).first()
         if not pos:
             return JSONResponse({"detail": "Position not found"}, status_code=404)
+        if pos.position_ticket.startswith("DERIV_"):
+            acct = db.query(TradingAccount).filter(TradingAccount.id == pos.account_id).first()
+            if acct and acct.platform.startswith("DERIV_API"):
+                try:
+                    await deriv_connector.close_contract_async(acct, pos.position_ticket)
+                except Exception as exc:
+                    return JSONResponse({"detail": f"Deriv close failed: {exc}"}, status_code=400)
         res = paper_trading_engine.close_paper_position(db, pos, "MANUAL_USER_CLOSE")
         await ws_manager.broadcast_event("POSITION_CLOSED", res)
         return JSONResponse(res)
     finally:
         db.close()
+
+
+# --- Deriv Broker Native API Endpoints ---
+async def verify_deriv_token_handler(request: Request):
+    data = await request.json()
+    req = DerivTokenVerifyRequest(**data)
+    try:
+        profile = await deriv_connector.authorize_token(req.api_token, req.app_id)
+        return JSONResponse(profile)
+    except Exception as e:
+        return JSONResponse({"detail": str(e)}, status_code=400)
+
+
+async def list_deriv_instruments_handler(request: Request):
+    return JSONResponse(deriv_connector.get_supported_instruments())
+
+
+async def sync_deriv_market_data_handler(request: Request):
+    try:
+        data = await request.json() if await request.body() else {}
+    except Exception:
+        data = {}
+    app_id = str(data.get("app_id", "1089"))
+    requested_symbols = data.get("symbols") or ["V75", "V100", "BOOM1000", "CRASH1000", "STEP"]
+    synced = []
+    errors = []
+    for sym in requested_symbols:
+        try:
+            tick = await deriv_connector.fetch_live_tick(sym, app_id=app_id)
+            synced.append(tick)
+        except Exception as exc:
+            errors.append({"symbol": sym, "error": str(exc)})
+    return JSONResponse({"synced_count": len(synced), "quotes": synced, "errors": errors})
 
 # --- Trading Journal Endpoints ---
 async def list_journal_entries(request: Request):

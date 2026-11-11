@@ -25,7 +25,8 @@ class _TradingJournalScreenState extends State<TradingJournalScreen> {
   Future<void> _fetchJournalEntries() async {
     setState(() => _isLoading = true);
     try {
-      final res = await http.get(Uri.parse('${AppConfig.baseUrl}${AppConfig.apiPrefix}/journal/'));
+      final res = await http.get(
+          Uri.parse('${AppConfig.baseUrl}${AppConfig.apiPrefix}/journal/'));
       if (res.statusCode == 200) {
         setState(() {
           _entries = jsonDecode(res.body);
@@ -51,7 +52,8 @@ class _TradingJournalScreenState extends State<TradingJournalScreen> {
         ],
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: AppColors.primaryCyan))
+          ? const Center(
+              child: CircularProgressIndicator(color: AppColors.primaryCyan))
           : _entries.isEmpty
               ? const Center(
                   child: Padding(
@@ -59,7 +61,8 @@ class _TradingJournalScreenState extends State<TradingJournalScreen> {
                     child: Text(
                       'No trading journal entries yet.\nCompleted trades automatically record AI explanations and post-mortem lessons here.',
                       textAlign: TextAlign.center,
-                      style: TextStyle(color: AppColors.textSecondary, height: 1.5),
+                      style: TextStyle(
+                          color: AppColors.textSecondary, height: 1.5),
                     ),
                   ),
                 )
@@ -77,7 +80,9 @@ class _TradingJournalScreenState extends State<TradingJournalScreen> {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                         side: BorderSide(
-                          color: isWin ? AppColors.bullishGreen.withOpacity(0.3) : AppColors.bearishRed.withOpacity(0.3),
+                          color: isWin
+                              ? AppColors.bullishGreen.withValues(alpha: 0.3)
+                              : AppColors.bearishRed.withValues(alpha: 0.3),
                         ),
                       ),
                       child: Padding(
@@ -91,27 +96,37 @@ class _TradingJournalScreenState extends State<TradingJournalScreen> {
                                 Row(
                                   children: [
                                     Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 6, vertical: 2),
                                       decoration: BoxDecoration(
-                                        color: isWin ? AppColors.bullishGreen : AppColors.bearishRed,
+                                        color: isWin
+                                            ? AppColors.bullishGreen
+                                            : AppColors.bearishRed,
                                         borderRadius: BorderRadius.circular(4),
                                       ),
                                       child: Text(
                                         e['direction'] ?? 'BUY',
-                                        style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 11),
+                                        style: const TextStyle(
+                                            color: Colors.black,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 11),
                                       ),
                                     ),
                                     const SizedBox(width: 8),
                                     Text(
                                       '${e['instrument']} (${e['lots']} lots)',
-                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                                      style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 15),
                                     ),
                                   ],
                                 ),
                                 Text(
                                   '\$${pnl.toStringAsFixed(2)} (${e['pnl_pct'] ?? 0}%)',
                                   style: TextStyle(
-                                    color: isWin ? AppColors.bullishGreen : AppColors.bearishRed,
+                                    color: isWin
+                                        ? AppColors.bullishGreen
+                                        : AppColors.bearishRed,
                                     fontWeight: FontWeight.bold,
                                     fontSize: 16,
                                   ),
@@ -122,8 +137,16 @@ class _TradingJournalScreenState extends State<TradingJournalScreen> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text('Entry: ${e['entry_price']} • Exit: ${e['exit_price']}', style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
-                                Text('Duration: ${e['holding_time_minutes']} min', style: const TextStyle(color: AppColors.textMuted, fontSize: 12)),
+                                Text(
+                                    'Entry: ${e['entry_price']} • Exit: ${e['exit_price']}',
+                                    style: const TextStyle(
+                                        color: AppColors.textSecondary,
+                                        fontSize: 12)),
+                                Text(
+                                    'Duration: ${e['holding_time_minutes']} min',
+                                    style: const TextStyle(
+                                        color: AppColors.textMuted,
+                                        fontSize: 12)),
                               ],
                             ),
                             const SizedBox(height: 10),
@@ -138,19 +161,32 @@ class _TradingJournalScreenState extends State<TradingJournalScreen> {
                                 children: [
                                   Row(
                                     children: const [
-                                      Icon(Icons.psychology, size: 16, color: AppColors.primaryCyan),
+                                      Icon(Icons.psychology,
+                                          size: 16,
+                                          color: AppColors.primaryCyan),
                                       SizedBox(width: 6),
-                                      Text('AI Post-Trade Explanation:', style: TextStyle(color: AppColors.primaryCyan, fontWeight: FontWeight.bold, fontSize: 12)),
+                                      Text('AI Post-Trade Explanation:',
+                                          style: TextStyle(
+                                              color: AppColors.primaryCyan,
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 12)),
                                     ],
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
-                                    e['ai_explanation'] ?? 'Adhered to systematic risk rules.',
-                                    style: const TextStyle(color: Colors.white, fontSize: 13, height: 1.3),
+                                    e['ai_explanation'] ??
+                                        'Adhered to systematic risk rules.',
+                                    style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 13,
+                                        height: 1.3),
                                   ),
                                   if (e['lessons_learned'] != null) ...[
                                     const SizedBox(height: 6),
-                                    Text('Key Lesson: ${e['lessons_learned']}', style: const TextStyle(color: AppColors.goldAccent, fontSize: 12)),
+                                    Text('Key Lesson: ${e['lessons_learned']}',
+                                        style: const TextStyle(
+                                            color: AppColors.goldAccent,
+                                            fontSize: 12)),
                                   ],
                                 ],
                               ),
@@ -164,4 +200,3 @@ class _TradingJournalScreenState extends State<TradingJournalScreen> {
     );
   }
 }
-

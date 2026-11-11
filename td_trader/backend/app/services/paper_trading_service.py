@@ -8,7 +8,7 @@ from typing import Dict, Any, List, Optional
 from datetime import datetime
 import uuid
 from td_trader.backend.app.models.entities import TradingAccount, Order, Position, TradingJournalEntry
-from td_trader.ai_engine.market_scanner.market_data_feed import market_data_feed, INSTRUMENT_CATALOG
+from td_trader.ai_engine.market_scanner.market_data_feed import market_data_feed, INSTRUMENT_CATALOG, get_pip_value_per_lot
 from td_trader.ai_engine.voice_engine.voice_service import td_ai_voice_engine
 
 class PaperTradingEngine:
@@ -125,7 +125,7 @@ class PaperTradingEngine:
                 continue
                 
             meta = INSTRUMENT_CATALOG.get(pos.instrument, {"pip_size": 0.0001, "digits": 5, "category": "FOREX"})
-            pip_factor = 10.0 if meta.get("category") in ["FOREX", "METALS"] else 1.0
+            pip_factor = get_pip_value_per_lot(pos.instrument, default_other=1.0)
             pip_size = meta["pip_size"]
             
             curr_price = quote["bid"] if pos.direction == "BUY" else quote["ask"]

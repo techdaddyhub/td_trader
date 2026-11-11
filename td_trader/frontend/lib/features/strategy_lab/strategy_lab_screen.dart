@@ -15,7 +15,8 @@ class _StrategyLabScreenState extends State<StrategyLabScreen> {
     {
       'name': 'MA_Crossover',
       'label': 'Moving Average Dynamic Crossover',
-      'desc': 'Fast EMA vs Slow EMA with volatility expansion filtering and ATR trailing stops.',
+      'desc':
+          'Fast EMA vs Slow EMA with volatility expansion filtering and ATR trailing stops.',
       'isActive': true,
       'winRate': 64.5,
       'profitFactor': 2.15,
@@ -24,7 +25,8 @@ class _StrategyLabScreenState extends State<StrategyLabScreen> {
     {
       'name': 'RSI_Dynamic_Reversal',
       'label': 'RSI Mean Reversion & Divergence',
-      'desc': 'Dynamic overbought/oversold boundaries scaled by trailing market ATR.',
+      'desc':
+          'Dynamic overbought/oversold boundaries scaled by trailing market ATR.',
       'isActive': true,
       'winRate': 58.2,
       'profitFactor': 1.85,
@@ -33,7 +35,8 @@ class _StrategyLabScreenState extends State<StrategyLabScreen> {
     {
       'name': 'MACD_Momentum',
       'label': 'MACD Multi-Timeframe Momentum',
-      'desc': 'Signal line cross with zero-line confirmation and momentum divergence.',
+      'desc':
+          'Signal line cross with zero-line confirmation and momentum divergence.',
       'isActive': true,
       'winRate': 61.0,
       'profitFactor': 2.05,
@@ -42,7 +45,8 @@ class _StrategyLabScreenState extends State<StrategyLabScreen> {
     {
       'name': 'Bollinger_Squeeze_Breakout',
       'label': 'Bollinger Band Squeeze Breakout',
-      'desc': 'Identifies tight volatility compressions followed by institutional volume expansion.',
+      'desc':
+          'Identifies tight volatility compressions followed by institutional volume expansion.',
       'isActive': false,
       'winRate': 55.4,
       'profitFactor': 1.70,
@@ -51,7 +55,8 @@ class _StrategyLabScreenState extends State<StrategyLabScreen> {
     {
       'name': 'Supertrend_Structure_Confluence',
       'label': 'Supertrend & Market Structure Confluence',
-      'desc': 'Combines trend direction with structural Break of Structure (BOS) continuity.',
+      'desc':
+          'Combines trend direction with structural Break of Structure (BOS) continuity.',
       'isActive': true,
       'winRate': 68.3,
       'profitFactor': 2.40,
@@ -75,7 +80,9 @@ class _StrategyLabScreenState extends State<StrategyLabScreen> {
             margin: const EdgeInsets.only(bottom: 12),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
-              side: BorderSide(color: s['isActive'] ? AppColors.primaryCyan : AppColors.border),
+              side: BorderSide(
+                  color:
+                      s['isActive'] ? AppColors.primaryCyan : AppColors.border),
             ),
             child: Padding(
               padding: const EdgeInsets.all(16),
@@ -88,12 +95,13 @@ class _StrategyLabScreenState extends State<StrategyLabScreen> {
                       Expanded(
                         child: Text(
                           s['label'],
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                          style: const TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 15),
                         ),
                       ),
                       Switch(
                         value: s['isActive'],
-                        activeColor: AppColors.bullishGreen,
+                        activeThumbColor: AppColors.bullishGreen,
                         onChanged: (val) {
                           setState(() {
                             s['isActive'] = val;
@@ -103,14 +111,19 @@ class _StrategyLabScreenState extends State<StrategyLabScreen> {
                     ],
                   ),
                   const SizedBox(height: 6),
-                  Text(s['desc'], style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+                  Text(s['desc'],
+                      style: const TextStyle(
+                          color: AppColors.textSecondary, fontSize: 12)),
                   const Divider(color: AppColors.border, height: 20),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      _buildMetric('Win Rate', '${s['winRate']}%', AppColors.bullishGreen),
-                      _buildMetric('Profit Factor', '${s['profitFactor']}', AppColors.goldAccent),
-                      _buildMetric('Sample Trades', '${s['trades']}', Colors.white),
+                      _buildMetric('Win Rate', '${s['winRate']}%',
+                          AppColors.bullishGreen),
+                      _buildMetric('Profit Factor', '${s['profitFactor']}',
+                          AppColors.goldAccent),
+                      _buildMetric(
+                          'Sample Trades', '${s['trades']}', Colors.white),
                     ],
                   ),
                 ],
@@ -125,11 +138,13 @@ class _StrategyLabScreenState extends State<StrategyLabScreen> {
   Widget _buildMetric(String title, String val, Color color) {
     return Column(
       children: [
-        Text(title, style: const TextStyle(color: AppColors.textMuted, fontSize: 10)),
+        Text(title,
+            style: const TextStyle(color: AppColors.textMuted, fontSize: 10)),
         const SizedBox(height: 2),
-        Text(val, style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 14)),
+        Text(val,
+            style: TextStyle(
+                color: color, fontWeight: FontWeight.bold, fontSize: 14)),
       ],
     );
   }
 }
-

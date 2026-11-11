@@ -6,7 +6,7 @@ execution slippage, lot commissions, and overnight swap financing.
 from typing import Dict, Any, List, Optional
 import numpy as np
 import pandas as pd
-from td_trader.ai_engine.market_scanner.market_data_feed import market_data_feed, INSTRUMENT_CATALOG
+from td_trader.ai_engine.market_scanner.market_data_feed import market_data_feed, INSTRUMENT_CATALOG, get_pip_value_per_lot
 from td_trader.ai_engine.strategy_engine.strategies import STRATEGY_REGISTRY
 from td_trader.backtesting.performance_metrics.metrics import PerformanceMetricsCalculator
 from td_trader.backend.app.schemas.schemas import BacktestRequest, BacktestResult
@@ -95,7 +95,7 @@ class BacktestEngine:
                         
                 if trade_closed:
                     # Calculate PnL with costs
-                    pip_factor = 10.0 if meta.get("category") in ["FOREX", "METALS"] else 1.0
+                    pip_factor = get_pip_value_per_lot(symbol, default_other=1.0)
                     if direction == "BUY":
                         pips = (exit_price - entry) / pip_size
                     else:
@@ -138,7 +138,7 @@ class BacktestEngine:
                     # Calculate dynamic position size based on risk %
                     sl_dist = abs(fill_entry - sl) / pip_size
                     risk_usd = balance * (req.risk_per_trade_pct / 100.0)
-                    pip_factor = 10.0 if meta.get("category") in ["FOREX", "METALS"] else 1.0
+                    pip_factor = get_pip_value_per_lot(symbol, default_other=1.0)
                     lots = round(max(0.01, min(risk_usd / max(sl_dist * pip_factor, 1.0), 5.0)), 2)
                     
                     active_trade = {

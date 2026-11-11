@@ -168,6 +168,35 @@ class ApiService {
     }
   }
 
+  // --- Deriv Broker Endpoints ---
+  Future<Map<String, dynamic>> verifyDerivToken(String apiToken,
+      {String appId = '1089'}) async {
+    final response = await http.post(
+      Uri.parse(
+          '${AppConfig.baseUrl}${AppConfig.apiPrefix}/brokers/deriv/verify-token'),
+      headers: _headers,
+      body: jsonEncode({'api_token': apiToken, 'app_id': appId}),
+    );
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    }
+    throw Exception('Deriv verification failed: ${response.body}');
+  }
+
+  Future<Map<String, dynamic>> syncDerivTicks(
+      {List<String>? symbols, String appId = '1089'}) async {
+    final response = await http.post(
+      Uri.parse(
+          '${AppConfig.baseUrl}${AppConfig.apiPrefix}/brokers/deriv/sync-ticks'),
+      headers: _headers,
+      body: jsonEncode({'symbols': symbols, 'app_id': appId}),
+    );
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    }
+    throw Exception('Deriv sync failed: ${response.body}');
+  }
+
   Future<void> toggleAutoTrading(int accountId, bool enabled) async {
     final response = await http.put(
       Uri.parse('${AppConfig.baseUrl}${AppConfig.apiPrefix}/accounts/$accountId/toggle-auto-trading'),

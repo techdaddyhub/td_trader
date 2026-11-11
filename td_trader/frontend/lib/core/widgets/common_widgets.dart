@@ -24,7 +24,7 @@ class ScoreBadge extends StatelessWidget {
       height: size,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: color.withOpacity(0.15),
+        color: color.withValues(alpha: 0.15),
         border: Border.all(color: color, width: 2),
       ),
       alignment: Alignment.center,
@@ -74,7 +74,8 @@ class VoiceWaveWidget extends StatelessWidget {
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: isListening ? AppColors.bearishRed : AppColors.primaryCyan,
+                color:
+                    isListening ? AppColors.bearishRed : AppColors.primaryCyan,
               ),
               child: Icon(
                 isListening ? Icons.mic : Icons.mic_none,
@@ -89,23 +90,31 @@ class VoiceWaveWidget extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  isSpeaking ? 'TD AI Voice Speaking...' : (isListening ? 'Listening for command...' : 'TD AI Voice Ready'),
+                  isSpeaking
+                      ? 'TD AI Voice Speaking...'
+                      : (isListening
+                          ? 'Listening for command...'
+                          : 'TD AI Voice Ready'),
                   style: TextStyle(
-                    color: isSpeaking ? AppColors.primaryCyan : AppColors.textPrimary,
+                    color: isSpeaking
+                        ? AppColors.primaryCyan
+                        : AppColors.textPrimary,
                     fontWeight: FontWeight.bold,
                     fontSize: 14,
                   ),
                 ),
                 Text(
                   'Tap mic to ask "Analyse gold" or "Check my account risk"',
-                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                  style: const TextStyle(
+                      color: AppColors.textSecondary, fontSize: 12),
                 ),
               ],
             ),
           ),
           if (isSpeaking)
             IconButton(
-              icon: const Icon(Icons.stop_circle_outlined, color: AppColors.bearishRed, size: 28),
+              icon: const Icon(Icons.stop_circle_outlined,
+                  color: AppColors.bearishRed, size: 28),
               onPressed: onInterruptTap,
               tooltip: 'Interrupt speech',
             ),
@@ -130,7 +139,8 @@ class EmergencyControlPanel extends StatelessWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: AppColors.surface,
-        title: const Text('EMERGENCY: CLOSE ALL POSITIONS', style: TextStyle(color: AppColors.bearishRed)),
+        title: const Text('EMERGENCY: CLOSE ALL POSITIONS',
+            style: TextStyle(color: AppColors.bearishRed)),
         content: const Text(
           'Are you sure you want to market-close ALL open positions immediately?\n\nThis will liquidate all open trades on this account.',
           style: TextStyle(color: AppColors.textPrimary),
@@ -138,15 +148,18 @@ class EmergencyControlPanel extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('CANCEL', style: TextStyle(color: AppColors.textSecondary)),
+            child: const Text('CANCEL',
+                style: TextStyle(color: AppColors.textSecondary)),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.bearishRed),
+            style:
+                ElevatedButton.styleFrom(backgroundColor: AppColors.bearishRed),
             onPressed: () {
               Navigator.pop(ctx);
               onAction('CLOSE_ALL_POSITIONS', true);
             },
-            child: const Text('CONFIRM CLOSE ALL', style: TextStyle(color: Colors.white)),
+            child: const Text('CONFIRM CLOSE ALL',
+                style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -160,7 +173,7 @@ class EmergencyControlPanel extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.bearishRed.withOpacity(0.5)),
+        border: Border.all(color: AppColors.bearishRed.withValues(alpha: 0.5)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -171,7 +184,10 @@ class EmergencyControlPanel extends StatelessWidget {
               SizedBox(width: 8),
               Text(
                 'SMART RISK GUARDIAN - EMERGENCY PANEL',
-                style: TextStyle(color: AppColors.bearishRed, fontWeight: FontWeight.bold, fontSize: 14),
+                style: TextStyle(
+                    color: AppColors.bearishRed,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14),
               ),
             ],
           ),
@@ -183,25 +199,33 @@ class EmergencyControlPanel extends StatelessWidget {
               ElevatedButton.icon(
                 icon: const Icon(Icons.pause_circle_filled, size: 16),
                 label: const Text('PAUSE AI TRADING'),
-                style: ElevatedButton.styleFrom(backgroundColor: AppColors.warningAmber, foregroundColor: Colors.black),
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.warningAmber,
+                    foregroundColor: Colors.black),
                 onPressed: () => onAction('PAUSE_AI', false),
               ),
               ElevatedButton.icon(
                 icon: const Icon(Icons.stop_circle, size: 16),
                 label: const Text('STOP NEW TRADES'),
-                style: ElevatedButton.styleFrom(backgroundColor: AppColors.surfaceLight, foregroundColor: Colors.white),
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.surfaceLight,
+                    foregroundColor: Colors.white),
                 onPressed: () => onAction('STOP_NEW_TRADES', false),
               ),
               ElevatedButton.icon(
                 icon: const Icon(Icons.cancel_presentation, size: 16),
                 label: const Text('CANCEL PENDING'),
-                style: ElevatedButton.styleFrom(backgroundColor: AppColors.surfaceLight, foregroundColor: Colors.white),
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.surfaceLight,
+                    foregroundColor: Colors.white),
                 onPressed: () => onAction('CANCEL_PENDING', false),
               ),
               ElevatedButton.icon(
                 icon: const Icon(Icons.dangerous, size: 16),
                 label: const Text('CLOSE ALL POSITIONS'),
-                style: ElevatedButton.styleFrom(backgroundColor: AppColors.bearishRed, foregroundColor: Colors.white),
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.bearishRed,
+                    foregroundColor: Colors.white),
                 onPressed: () => _showCloseAllConfirmation(context),
               ),
             ],
@@ -211,4 +235,3 @@ class EmergencyControlPanel extends StatelessWidget {
     );
   }
 }
-

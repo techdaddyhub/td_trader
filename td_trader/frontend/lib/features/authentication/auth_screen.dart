@@ -16,7 +16,8 @@ class AuthScreen extends StatefulWidget {
 class _AuthScreenState extends State<AuthScreen> {
   bool _isSignUp = false;
   final _emailController = TextEditingController(text: 'trader@tdtrader.io');
-  final _fullNameController = TextEditingController(text: 'Chief Quantitative Trader');
+  final _fullNameController =
+      TextEditingController(text: 'Chief Quantitative Trader');
   final _passwordController = TextEditingController(text: 'FintechPro#2026!');
   bool _isLoading = false;
   String? _errorMessage;
@@ -84,11 +85,13 @@ class _AuthScreenState extends State<AuthScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     // TechDaddy Official TD Logo
-                    const TechDaddyLogo(size: 72, showText: true, showCopyright: false),
+                    const TechDaddyLogo(
+                        size: 72, showText: true, showCopyright: false),
                     const SizedBox(height: 6),
                     const Text(
                       'Trade Smarter. Think Faster. Let AI Explain.',
-                      style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                      style: TextStyle(
+                          color: AppColors.textSecondary, fontSize: 13),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 24),
@@ -98,13 +101,14 @@ class _AuthScreenState extends State<AuthScreen> {
                         padding: const EdgeInsets.all(12),
                         margin: const EdgeInsets.only(bottom: 16),
                         decoration: BoxDecoration(
-                          color: AppColors.bearishRed.withOpacity(0.15),
+                          color: AppColors.bearishRed.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(color: AppColors.bearishRed),
                         ),
                         child: Text(
                           _errorMessage!,
-                          style: const TextStyle(color: AppColors.bearishRed, fontSize: 12),
+                          style: const TextStyle(
+                              color: AppColors.bearishRed, fontSize: 12),
                         ),
                       ),
 
@@ -113,7 +117,8 @@ class _AuthScreenState extends State<AuthScreen> {
                         controller: _fullNameController,
                         decoration: const InputDecoration(
                           labelText: 'Full Name',
-                          prefixIcon: Icon(Icons.person, color: AppColors.primaryCyan),
+                          prefixIcon:
+                              Icon(Icons.person, color: AppColors.primaryCyan),
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -124,7 +129,8 @@ class _AuthScreenState extends State<AuthScreen> {
                       keyboardType: TextInputType.emailAddress,
                       decoration: const InputDecoration(
                         labelText: 'Email Address',
-                        prefixIcon: Icon(Icons.email, color: AppColors.primaryCyan),
+                        prefixIcon:
+                            Icon(Icons.email, color: AppColors.primaryCyan),
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -134,7 +140,8 @@ class _AuthScreenState extends State<AuthScreen> {
                       obscureText: true,
                       decoration: const InputDecoration(
                         labelText: 'Password',
-                        prefixIcon: Icon(Icons.lock, color: AppColors.primaryCyan),
+                        prefixIcon:
+                            Icon(Icons.lock, color: AppColors.primaryCyan),
                       ),
                     ),
                     const SizedBox(height: 24),
@@ -147,9 +154,12 @@ class _AuthScreenState extends State<AuthScreen> {
                             ? const SizedBox(
                                 height: 20,
                                 width: 20,
-                                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black),
+                                child: CircularProgressIndicator(
+                                    strokeWidth: 2, color: Colors.black),
                               )
-                            : Text(_isSignUp ? 'CREATE ACCOUNT' : 'SECURE SIGN IN'),
+                            : Text(_isSignUp
+                                ? 'CREATE ACCOUNT'
+                                : 'SECURE SIGN IN'),
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -157,14 +167,18 @@ class _AuthScreenState extends State<AuthScreen> {
                     TextButton(
                       onPressed: () => setState(() => _isSignUp = !_isSignUp),
                       child: Text(
-                        _isSignUp ? 'Already registered? Sign in' : "Don't have an account? Create one",
-                        style: const TextStyle(color: AppColors.primaryCyan, fontSize: 13),
+                        _isSignUp
+                            ? 'Already registered? Sign in'
+                            : "Don't have an account? Create one",
+                        style: const TextStyle(
+                            color: AppColors.primaryCyan, fontSize: 13),
                       ),
                     ),
                     const SizedBox(height: 12),
                     const Text(
                       'Copyright © 2026 TechDaddy. All rights reserved.',
-                      style: TextStyle(color: AppColors.textMuted, fontSize: 11),
+                      style:
+                          TextStyle(color: AppColors.textMuted, fontSize: 11),
                       textAlign: TextAlign.center,
                     ),
                   ],
@@ -177,4 +191,3 @@ class _AuthScreenState extends State<AuthScreen> {
     );
   }
 }
-

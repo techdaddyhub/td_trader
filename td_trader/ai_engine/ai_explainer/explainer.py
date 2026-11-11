@@ -63,6 +63,47 @@ class AIExplainer:
                     "No high-confluence entry has cleared the 70-point ranking threshold yet."
                 )
 
+        # 1b. Deriv Synthetic Indices / V75 / Boom / Crash / Step
+        elif any(k in q for k in ("deriv", "v75", "v100", "volatility", "boom", "crash", "step index", "synthetic")):
+            intent = "ANALYSE_DERIV_SYNTHETICS"
+            target_sym = "V75"
+            if "boom" in q:
+                target_sym = "BOOM1000"
+            elif "crash" in q:
+                target_sym = "CRASH1000"
+            elif "v100" in q or "100" in q:
+                target_sym = "V100"
+            elif "step" in q:
+                target_sym = "STEP"
+
+            quote = market_data_feed.get_latest_quote(target_sym)
+            verified_facts = {
+                "symbol": target_sym,
+                "broker": "Deriv (Native API & DMT5)",
+                "bid": quote["bid"] if quote else 0.0,
+                "ask": quote["ask"] if quote else 0.0,
+                "spread_pips": quote["spread_pips"] if quote else 0.0,
+                "data_source": quote.get("source", "Multi-Market Feed") if quote else "Delayed Feed",
+            }
+            active_signals = [
+                s for s in (ai_market_scanner.current_opportunities or [])
+                if s.instrument == target_sym
+            ]
+            if active_signals:
+                best_sig = active_signals[0]
+                ai_interpretation = (
+                    f"Deriv Synthetic {target_sym} is trading around {verified_facts['bid']}. "
+                    f"Active {best_sig.direction} setup detected (Score: {best_sig.score}/100) via {best_sig.strategy_name}. "
+                    f"Structure: {best_sig.market_structure}. Entry: {best_sig.entry_price}, "
+                    f"Stop Loss: {best_sig.stop_loss}, Take Profit: {best_sig.take_profit_1}."
+                )
+            else:
+                ai_interpretation = (
+                    f"Deriv Synthetic {target_sym} is trading around {verified_facts['bid']}. "
+                    "Continuous 24/7 synthetic volatility scanning is active across V75, V100, Boom/Crash, and Step Index. "
+                    "Awaiting strict confluence above minimum score threshold before execution."
+                )
+
         # 2. "Explain the latest signal"
         elif "latest signal" in q or "current signal" in q or "last signal" in q:
             intent = "EXPLAIN_SIGNAL"
@@ -189,10 +230,10 @@ class AIExplainer:
             top_symbol = opps[0].instrument if opps else "XAUUSD"
             verified_facts = {
                 "active_opportunities_count": len(opps),
-                "monitored_markets": "Forex, Crypto, Metals, Indices, Commodities"
+                "monitored_markets": "Forex, Deriv Synthetics (V75/Boom/Crash), Crypto, Metals, Indices, Commodities"
             }
             ai_interpretation = (
-                f"Markets are actively scanning. We have {len(opps)} identified setups across Forex, Crypto, and Metals. "
+                f"Markets are actively scanning. We have {len(opps)} identified setups across Forex, Deriv Synthetics, Crypto, and Metals. "
                 f"High-momentum attention is currently concentrated on {top_symbol}. "
                 "Risk parameters remain enforced across all connected accounts."
             )

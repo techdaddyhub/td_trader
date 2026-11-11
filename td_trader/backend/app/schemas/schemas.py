@@ -35,12 +35,17 @@ class TradingAccountCreate(BaseModel):
     account_number: str
     broker_name: str
     server: str
-    platform: str # MT4_DEMO, MT4_LIVE, MT5_DEMO, MT5_LIVE, PAPER_TRADING
+    platform: str # MT4_DEMO, MT4_LIVE, MT5_DEMO, MT5_LIVE, DERIV_API_DEMO, DERIV_API_LIVE, PAPER_TRADING
     currency: str = "USD"
-    password: str # Encrypted immediately upon receipt
+    password: str # Master/Investor password OR Deriv API token (encrypted immediately upon receipt)
     balance: float = 10000.0
     is_auto_trading_enabled: bool = False
     is_authorized_live: bool = False
+
+
+class DerivTokenVerifyRequest(BaseModel):
+    api_token: str
+    app_id: str = "1089"
 
 class TradingAccountUpdate(BaseModel):
     is_auto_trading_enabled: Optional[bool] = None

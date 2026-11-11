@@ -21,6 +21,7 @@ from td_trader.backend.app.api.endpoints import (
     run_backtest_handler, compare_strategies_handler, list_available_strategies,
     list_trading_accounts, create_trading_account, toggle_auto_trading, authorize_live_account,
     get_portfolio_summary_handler, submit_order_handler, get_positions_handler, close_position_handler,
+    verify_deriv_token_handler, list_deriv_instruments_handler, sync_deriv_market_data_handler,
     list_journal_entries, websocket_endpoint
 )
 
@@ -89,7 +90,12 @@ routes = [
     
     # Trading Journal
     Route(f"{settings.API_PREFIX}/journal/", list_journal_entries, methods=["GET"]),
-    
+
+    # Deriv Broker Integration
+    Route(f"{settings.API_PREFIX}/brokers/deriv/verify-token", verify_deriv_token_handler, methods=["POST"]),
+    Route(f"{settings.API_PREFIX}/brokers/deriv/instruments", list_deriv_instruments_handler, methods=["GET"]),
+    Route(f"{settings.API_PREFIX}/brokers/deriv/sync-ticks", sync_deriv_market_data_handler, methods=["POST"]),
+
     # WebSocket Real-Time Event Bus
     WebSocketRoute("/ws", websocket_endpoint)
 ]

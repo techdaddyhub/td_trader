@@ -58,7 +58,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       setState(() {
         _isTesting = false;
         _isSuccess = true;
-        _testResult = 'Connected to PC Server! Latency: ${stopwatch.elapsedMilliseconds}ms\n'
+        _testResult =
+            'Connected to PC Server! Latency: ${stopwatch.elapsedMilliseconds}ms\n'
             'Owner: ${res['owner'] ?? 'TechDaddy'} | Version: ${res['version'] ?? '2.0.0'}';
       });
     } catch (e) {
@@ -103,7 +104,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 children: [
                   Row(
                     children: const [
-                      Icon(Icons.computer, color: AppColors.binanceGold, size: 24),
+                      Icon(Icons.computer,
+                          color: AppColors.binanceGold, size: 24),
                       SizedBox(width: 8),
                       Text(
                         'Trading Server / PC Host IP',
@@ -118,18 +120,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   const SizedBox(height: 8),
                   const Text(
                     'Enter your computer’s local IP address or VPS URL to sync market signals and MetaTrader 4/5 broker execution:',
-                    style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                    style:
+                        TextStyle(color: AppColors.textSecondary, fontSize: 12),
                   ),
                   const SizedBox(height: 12),
                   TextField(
                     controller: _serverController,
-                    style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                        color: AppColors.textPrimary,
+                        fontWeight: FontWeight.bold),
                     decoration: InputDecoration(
                       labelText: 'Server Host URL',
                       hintText: 'http://192.168.1.50:8000',
-                      prefixIcon: const Icon(Icons.link, color: AppColors.binanceGold),
+                      prefixIcon:
+                          const Icon(Icons.link, color: AppColors.binanceGold),
                       suffixIcon: IconButton(
-                        icon: const Icon(Icons.clear, color: AppColors.textSecondary),
+                        icon: const Icon(Icons.clear,
+                            color: AppColors.textSecondary),
                         onPressed: () => _serverController.clear(),
                       ),
                     ),
@@ -141,20 +148,30 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     children: [
                       ActionChip(
                         backgroundColor: AppColors.surfaceLight,
-                        avatar: const Icon(Icons.wifi, size: 16, color: AppColors.binanceGold),
-                        label: const Text('Local Wi-Fi PC', style: TextStyle(fontSize: 11, color: AppColors.textPrimary)),
-                        onPressed: () => _applyPreset('http://192.168.1.100:8000'),
+                        avatar: const Icon(Icons.wifi,
+                            size: 16, color: AppColors.binanceGold),
+                        label: const Text('Local Wi-Fi PC',
+                            style: TextStyle(
+                                fontSize: 11, color: AppColors.textPrimary)),
+                        onPressed: () =>
+                            _applyPreset('http://192.168.1.100:8000'),
                       ),
                       ActionChip(
                         backgroundColor: AppColors.surfaceLight,
-                        avatar: const Icon(Icons.laptop, size: 16, color: AppColors.binanceGold),
-                        label: const Text('Localhost (Same PC)', style: TextStyle(fontSize: 11, color: AppColors.textPrimary)),
+                        avatar: const Icon(Icons.laptop,
+                            size: 16, color: AppColors.binanceGold),
+                        label: const Text('Localhost (Same PC)',
+                            style: TextStyle(
+                                fontSize: 11, color: AppColors.textPrimary)),
                         onPressed: () => _applyPreset('http://127.0.0.1:8000'),
                       ),
                       ActionChip(
                         backgroundColor: AppColors.surfaceLight,
-                        avatar: const Icon(Icons.phone_android, size: 16, color: AppColors.binanceGold),
-                        label: const Text('Emulator Host', style: TextStyle(fontSize: 11, color: AppColors.textPrimary)),
+                        avatar: const Icon(Icons.phone_android,
+                            size: 16, color: AppColors.binanceGold),
+                        label: const Text('Emulator Host',
+                            style: TextStyle(
+                                fontSize: 11, color: AppColors.textPrimary)),
                         onPressed: () => _applyPreset('http://10.0.2.2:8000'),
                       ),
                     ],
@@ -173,12 +190,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           ? const SizedBox(
                               width: 18,
                               height: 18,
-                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black),
+                              child: CircularProgressIndicator(
+                                  strokeWidth: 2, color: Colors.black),
                             )
                           : const Icon(Icons.electrical_services, size: 20),
                       label: Text(
-                        _isTesting ? 'TESTING CONNECTION...' : 'TEST & CONNECT TO PC',
-                        style: const TextStyle(fontWeight: FontWeight.w900, letterSpacing: 0.8),
+                        _isTesting
+                            ? 'TESTING CONNECTION...'
+                            : 'TEST & CONNECT TO PC',
+                        style: const TextStyle(
+                            fontWeight: FontWeight.w900, letterSpacing: 0.8),
                       ),
                     ),
                   ),
@@ -189,11 +210,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
                         color: _isSuccess
-                            ? AppColors.bullishGreen.withOpacity(0.12)
-                            : AppColors.bearishRed.withOpacity(0.12),
+                            ? AppColors.bullishGreen.withValues(alpha: 0.12)
+                            : AppColors.bearishRed.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
-                          color: _isSuccess ? AppColors.bullishGreen : AppColors.bearishRed,
+                          color: _isSuccess
+                              ? AppColors.bullishGreen
+                              : AppColors.bearishRed,
                         ),
                       ),
                       child: Row(
@@ -201,7 +224,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         children: [
                           Icon(
                             _isSuccess ? Icons.check_circle : Icons.error,
-                            color: _isSuccess ? AppColors.bullishGreen : AppColors.bearishRed,
+                            color: _isSuccess
+                                ? AppColors.bullishGreen
+                                : AppColors.bearishRed,
                             size: 20,
                           ),
                           const SizedBox(width: 8),
@@ -209,7 +234,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             child: Text(
                               _testResult!,
                               style: TextStyle(
-                                color: _isSuccess ? AppColors.bullishGreen : AppColors.bearishRed,
+                                color: _isSuccess
+                                    ? AppColors.bullishGreen
+                                    : AppColors.bearishRed,
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -228,13 +255,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
           // 2. QUICK 3-STEP PC CONNECTION GUIDE
           Card(
             color: AppColors.surfaceLight,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             child: ExpansionTile(
               initiallyExpanded: false,
-              leading: const Icon(Icons.help_outline, color: AppColors.binanceGold),
+              leading:
+                  const Icon(Icons.help_outline, color: AppColors.binanceGold),
               title: const Text(
                 'How to Connect Android to Your PC in 3 Steps',
-                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary),
               ),
               children: const [
                 Padding(
@@ -242,14 +274,35 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('1. Find PC Local IP:', style: TextStyle(color: AppColors.binanceGold, fontWeight: FontWeight.bold, fontSize: 12)),
-                      Text('On your Windows PC, press Win+R, type "cmd", then type "ipconfig". Note the IPv4 Address (e.g. 192.168.1.50).', style: TextStyle(color: AppColors.textSecondary, fontSize: 11)),
+                      Text('1. Find PC Local IP:',
+                          style: TextStyle(
+                              color: AppColors.binanceGold,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12)),
+                      Text(
+                          'On your Windows PC, press Win+R, type "cmd", then type "ipconfig". Note the IPv4 Address (e.g. 192.168.1.50).',
+                          style: TextStyle(
+                              color: AppColors.textSecondary, fontSize: 11)),
                       SizedBox(height: 8),
-                      Text('2. Connect to Same Wi-Fi:', style: TextStyle(color: AppColors.binanceGold, fontWeight: FontWeight.bold, fontSize: 12)),
-                      Text('Ensure your Android device is on the same local Wi-Fi router network as your computer.', style: TextStyle(color: AppColors.textSecondary, fontSize: 11)),
+                      Text('2. Connect to Same Wi-Fi:',
+                          style: TextStyle(
+                              color: AppColors.binanceGold,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12)),
+                      Text(
+                          'Ensure your Android device is on the same local Wi-Fi router network as your computer.',
+                          style: TextStyle(
+                              color: AppColors.textSecondary, fontSize: 11)),
                       SizedBox(height: 8),
-                      Text('3. Start TD Trader Backend & Test:', style: TextStyle(color: AppColors.binanceGold, fontWeight: FontWeight.bold, fontSize: 12)),
-                      Text('Launch the backend on PC, enter "http://<YOUR_PC_IP>:8000" above, and tap "TEST & CONNECT TO PC".', style: TextStyle(color: AppColors.textSecondary, fontSize: 11)),
+                      Text('3. Start TD Trader Backend & Test:',
+                          style: TextStyle(
+                              color: AppColors.binanceGold,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12)),
+                      Text(
+                          'Launch the backend on PC, enter "http://<YOUR_PC_IP>:8000" above, and tap "TEST & CONNECT TO PC".',
+                          style: TextStyle(
+                              color: AppColors.textSecondary, fontSize: 11)),
                       SizedBox(height: 8),
                     ],
                   ),
@@ -263,19 +316,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
           _buildSectionHeader('TD AI VOICE CONFIGURATION'),
           Card(
             color: AppColors.surface,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
                   DropdownButtonFormField<String>(
-                    value: voice.selectedPersonality,
-                    decoration: const InputDecoration(labelText: 'Voice Personality'),
+                    initialValue: voice.selectedPersonality,
+                    decoration:
+                        const InputDecoration(labelText: 'Voice Personality'),
                     items: const [
-                      DropdownMenuItem(value: 'Aria_Fintech_Pro', child: Text('Aria (Female Fintech Lead)')),
-                      DropdownMenuItem(value: 'Sophia_Macro_Strategist', child: Text('Sophia (Global Macro)')),
-                      DropdownMenuItem(value: 'Marcus_Quant_Lead', child: Text('Marcus (Male Quant Lead)')),
-                      DropdownMenuItem(value: 'Alexander_Institutional', child: Text('Alexander (Risk Arbiter)')),
+                      DropdownMenuItem(
+                          value: 'Aria_Fintech_Pro',
+                          child: Text('Aria (Female Fintech Lead)')),
+                      DropdownMenuItem(
+                          value: 'Sophia_Macro_Strategist',
+                          child: Text('Sophia (Global Macro)')),
+                      DropdownMenuItem(
+                          value: 'Marcus_Quant_Lead',
+                          child: Text('Marcus (Male Quant Lead)')),
+                      DropdownMenuItem(
+                          value: 'Alexander_Institutional',
+                          child: Text('Alexander (Risk Arbiter)')),
                     ],
                     onChanged: (val) => voice.setPersonality(val!),
                   ),
@@ -283,8 +346,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('Speech Speed:', style: TextStyle(color: AppColors.textSecondary)),
-                      Text('${voice.speechSpeed.toStringAsFixed(1)}x', style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.binanceGold)),
+                      const Text('Speech Speed:',
+                          style: TextStyle(color: AppColors.textSecondary)),
+                      Text('${voice.speechSpeed.toStringAsFixed(1)}x',
+                          style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.binanceGold)),
                     ],
                   ),
                   Slider(
@@ -298,8 +365,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('Voice Volume:', style: TextStyle(color: AppColors.textSecondary)),
-                      Text('${(voice.volume * 100).toStringAsFixed(0)}%', style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.binanceGold)),
+                      const Text('Voice Volume:',
+                          style: TextStyle(color: AppColors.textSecondary)),
+                      Text('${(voice.volume * 100).toStringAsFixed(0)}%',
+                          style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.binanceGold)),
                     ],
                   ),
                   Slider(
@@ -320,18 +391,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
           _buildSectionHeader('CYBERSECURITY & ENCRYPTION'),
           Card(
             color: AppColors.surface,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
-                  _buildSecurityRow('Broker Credential Storage', 'AES-256 Fernet Encrypted', AppColors.bullishGreen),
+                  _buildSecurityRow('Broker Credential Storage',
+                      'AES-256 Fernet Encrypted', AppColors.bullishGreen),
                   const Divider(color: AppColors.border),
-                  _buildSecurityRow('User Password Hashing', 'PBKDF2-HMAC-SHA256 (600k rounds)', AppColors.bullishGreen),
+                  _buildSecurityRow(
+                      'User Password Hashing',
+                      'PBKDF2-HMAC-SHA256 (600k rounds)',
+                      AppColors.bullishGreen),
                   const Divider(color: AppColors.border),
-                  _buildSecurityRow('API Token Standard', 'RFC 7519 HMAC-SHA256 JWT', AppColors.bullishGreen),
+                  _buildSecurityRow('API Token Standard',
+                      'RFC 7519 HMAC-SHA256 JWT', AppColors.bullishGreen),
                   const Divider(color: AppColors.border),
-                  _buildSecurityRow('Account Isolation', 'Strict Zero-Commingling Enforced', AppColors.binanceGold),
+                  _buildSecurityRow(
+                      'Account Isolation',
+                      'Strict Zero-Commingling Enforced',
+                      AppColors.binanceGold),
                 ],
               ),
             ),
@@ -342,7 +422,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           _buildSectionHeader('OWNERSHIP & LEGAL NOTICES'),
           Card(
             color: AppColors.surface,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             child: Padding(
               padding: const EdgeInsets.all(20),
               child: Column(
@@ -351,12 +432,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   SizedBox(height: 12),
                   Text(
                     'Exclusive Property of TechDaddy Fintech Systems',
-                    style: TextStyle(color: AppColors.binanceGold, fontSize: 12, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                        color: AppColors.binanceGold,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold),
                   ),
                   SizedBox(height: 6),
                   Text(
                     'All algorithms, neural network architectures, Smart Risk Guardian rules, and MetaTrader bridge protocols are protected under international copyright law.',
-                    style: TextStyle(color: AppColors.textSecondary, fontSize: 11, height: 1.4),
+                    style: TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 11,
+                        height: 1.4),
                     textAlign: TextAlign.center,
                   ),
                 ],
@@ -389,18 +476,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+          Text(label,
+              style: const TextStyle(
+                  color: AppColors.textSecondary, fontSize: 12)),
           Row(
             children: [
               Container(
                 width: 6,
                 height: 6,
-                decoration: BoxDecoration(shape: BoxShape.circle, color: statusColor),
+                decoration:
+                    BoxDecoration(shape: BoxShape.circle, color: statusColor),
               ),
               const SizedBox(width: 6),
               Text(
                 value,
-                style: TextStyle(color: statusColor, fontWeight: FontWeight.bold, fontSize: 12),
+                style: TextStyle(
+                    color: statusColor,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12),
               ),
             ],
           ),

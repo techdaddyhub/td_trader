@@ -75,7 +75,9 @@ class SubscriptionScreen extends StatelessWidget {
       color: AppColors.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(14),
-        side: BorderSide(color: isCurrent ? AppColors.primaryCyan : AppColors.border, width: isCurrent ? 1.5 : 1.0),
+        side: BorderSide(
+            color: isCurrent ? AppColors.primaryCyan : AppColors.border,
+            width: isCurrent ? 1.5 : 1.0),
       ),
       child: Padding(
         padding: const EdgeInsets.all(20),
@@ -85,28 +87,44 @@ class SubscriptionScreen extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                Text(title,
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold, fontSize: 15)),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
-                    color: badgeColor.withOpacity(0.15),
+                    color: badgeColor.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(4),
                     border: Border.all(color: badgeColor),
                   ),
-                  child: Text(badge, style: TextStyle(color: badgeColor, fontSize: 10, fontWeight: FontWeight.bold)),
+                  child: Text(badge,
+                      style: TextStyle(
+                          color: badgeColor,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold)),
                 ),
               ],
             ),
             const SizedBox(height: 8),
-            Text(price, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 22, color: Colors.white)),
+            Text(price,
+                style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 22,
+                    color: Colors.white)),
             const Divider(color: AppColors.border, height: 24),
             ...features.map((f) => Padding(
                   padding: const EdgeInsets.symmetric(vertical: 4),
                   child: Row(
                     children: [
-                      const Icon(Icons.check_circle, size: 16, color: AppColors.primaryCyan),
+                      const Icon(Icons.check_circle,
+                          size: 16, color: AppColors.primaryCyan),
                       const SizedBox(width: 8),
-                      Expanded(child: Text(f, style: const TextStyle(color: AppColors.textSecondary, fontSize: 13))),
+                      Expanded(
+                          child: Text(f,
+                              style: const TextStyle(
+                                  color: AppColors.textSecondary,
+                                  fontSize: 13))),
                     ],
                   ),
                 )),
@@ -115,11 +133,14 @@ class SubscriptionScreen extends StatelessWidget {
               width: double.infinity,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: isCurrent ? AppColors.surfaceLight : AppColors.primaryCyan,
+                  backgroundColor: isCurrent
+                      ? AppColors.surfaceLight
+                      : AppColors.primaryCyan,
                   foregroundColor: isCurrent ? Colors.white : Colors.black,
                 ),
                 onPressed: () {},
-                child: Text(isCurrent ? 'CURRENT ACTIVE PLAN' : 'UPGRADE TO PLAN'),
+                child:
+                    Text(isCurrent ? 'CURRENT ACTIVE PLAN' : 'UPGRADE TO PLAN'),
               ),
             ),
           ],
@@ -128,4 +149,3 @@ class SubscriptionScreen extends StatelessWidget {
     );
   }
 }
-

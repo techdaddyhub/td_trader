@@ -2,7 +2,6 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/services/api_service.dart';
-import '../../core/config/app_config.dart';
 
 class PortfolioScreen extends StatefulWidget {
   const PortfolioScreen({super.key});
@@ -67,7 +66,8 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
         ],
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: AppColors.primaryCyan))
+          ? const Center(
+              child: CircularProgressIndicator(color: AppColors.primaryCyan))
           : _portfolioData == null
               ? const Center(child: Text('Portfolio data unavailable.'))
               : ListView(
@@ -83,12 +83,14 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
                       ),
                       child: Row(
                         children: const [
-                          Icon(Icons.verified_user, color: AppColors.primaryCyan, size: 20),
+                          Icon(Icons.verified_user,
+                              color: AppColors.primaryCyan, size: 20),
                           SizedBox(width: 10),
                           Expanded(
                             child: Text(
                               'FINTECH ISOLATION SAFEGUARD: Portfolio metrics provide analytical aggregation only. Capital is strictly ring-fenced per broker account without pooling.',
-                              style: TextStyle(color: AppColors.textSecondary, fontSize: 11),
+                              style: TextStyle(
+                                  color: AppColors.textSecondary, fontSize: 11),
                             ),
                           ),
                         ],
@@ -99,15 +101,25 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
                     // Portfolio High-Level Statistics
                     Row(
                       children: [
-                        Expanded(child: _buildSummaryCard('TOTAL BALANCE', '\$${_portfolioData!['total_balance'].toStringAsFixed(2)}', AppColors.textPrimary)),
+                        Expanded(
+                            child: _buildSummaryCard(
+                                'TOTAL BALANCE',
+                                '\$${_portfolioData!['total_balance'].toStringAsFixed(2)}',
+                                AppColors.textPrimary)),
                         const SizedBox(width: 12),
-                        Expanded(child: _buildSummaryCard('TOTAL EQUITY', '\$${_portfolioData!['total_equity'].toStringAsFixed(2)}', AppColors.primaryCyan)),
+                        Expanded(
+                            child: _buildSummaryCard(
+                                'TOTAL EQUITY',
+                                '\$${_portfolioData!['total_equity'].toStringAsFixed(2)}',
+                                AppColors.primaryCyan)),
                         const SizedBox(width: 12),
                         Expanded(
                           child: _buildSummaryCard(
                             'FLOATING PnL',
                             '\$${_portfolioData!['total_floating_pnl'].toStringAsFixed(2)}',
-                            _portfolioData!['total_floating_pnl'] >= 0 ? AppColors.bullishGreen : AppColors.bearishRed,
+                            _portfolioData!['total_floating_pnl'] >= 0
+                                ? AppColors.bullishGreen
+                                : AppColors.bearishRed,
                           ),
                         ),
                       ],
@@ -115,7 +127,11 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
                     const SizedBox(height: 20),
 
                     // Market Category Exposure Breakdown
-                    const Text('ASSET CLASS ALLOCATION & EXPOSURE', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.textSecondary)),
+                    const Text('ASSET CLASS ALLOCATION & EXPOSURE',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                            color: AppColors.textSecondary)),
                     const SizedBox(height: 10),
                     Container(
                       padding: const EdgeInsets.all(16),
@@ -126,38 +142,61 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
                       ),
                       child: Column(
                         children: [
-                          _buildExposureBar('Forex Markets', 0.45, AppColors.primaryCyan),
+                          _buildExposureBar(
+                              'Forex Markets', 0.35, AppColors.primaryCyan),
                           const SizedBox(height: 12),
-                          _buildExposureBar('Precious Metals (Gold/Silver)', 0.30, AppColors.goldAccent),
+                          _buildExposureBar('Deriv Synthetics (V75 / Boom / Crash)',
+                              0.25, AppColors.binanceGold),
                           const SizedBox(height: 12),
-                          _buildExposureBar('Cryptocurrency', 0.15, AppColors.bullishGreen),
+                          _buildExposureBar('Precious Metals (Gold/Silver)',
+                              0.20, AppColors.goldAccent),
                           const SizedBox(height: 12),
-                          _buildExposureBar('Indices & Commodities', 0.10, AppColors.warningAmber),
+                          _buildExposureBar(
+                              'Cryptocurrency', 0.12, AppColors.bullishGreen),
+                          const SizedBox(height: 12),
+                          _buildExposureBar('Indices & Commodities', 0.08,
+                              AppColors.warningAmber),
                         ],
                       ),
                     ),
                     const SizedBox(height: 20),
 
                     // Connected Accounts List
-                    const Text('CONNECTED BROKER ACCOUNTS', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.textSecondary)),
+                    const Text('CONNECTED BROKER ACCOUNTS',
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                            color: AppColors.textSecondary)),
                     const SizedBox(height: 10),
                     ...(_portfolioData!['accounts'] as List).map((acct) {
                       return Card(
                         color: AppColors.surface,
                         margin: const EdgeInsets.only(bottom: 10),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10)),
                         child: ListTile(
-                          title: Text('${acct.brokerName} (#${acct.accountNumber})', style: const TextStyle(fontWeight: FontWeight.bold)),
-                          subtitle: Text('${acct.platform.replaceAll("_", " ")} • Free Margin: \$${acct.freeMargin.toStringAsFixed(2)}'),
+                          title: Text(
+                              '${acct.brokerName} (#${acct.accountNumber})',
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.bold)),
+                          subtitle: Text(
+                              '${acct.platform.replaceAll("_", " ")} • Free Margin: \$${acct.freeMargin.toStringAsFixed(2)}'),
                           trailing: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
-                              Text('\$${acct.equity.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primaryCyan)),
+                              Text('\$${acct.equity.toStringAsFixed(2)}',
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.primaryCyan)),
                               Text(
-                                acct.isAutoTradingEnabled ? 'Auto ON' : 'Auto OFF',
+                                acct.isAutoTradingEnabled
+                                    ? 'Auto ON'
+                                    : 'Auto OFF',
                                 style: TextStyle(
-                                  color: acct.isAutoTradingEnabled ? AppColors.bullishGreen : AppColors.textMuted,
+                                  color: acct.isAutoTradingEnabled
+                                      ? AppColors.bullishGreen
+                                      : AppColors.textMuted,
                                   fontSize: 11,
                                 ),
                               ),
@@ -182,9 +221,15 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: const TextStyle(color: AppColors.textMuted, fontSize: 10, fontWeight: FontWeight.bold)),
+          Text(title,
+              style: const TextStyle(
+                  color: AppColors.textMuted,
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold)),
           const SizedBox(height: 4),
-          Text(val, style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 14)),
+          Text(val,
+              style: TextStyle(
+                  color: color, fontWeight: FontWeight.bold, fontSize: 14)),
         ],
       ),
     );
@@ -197,8 +242,11 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(title, style: const TextStyle(fontSize: 12, color: Colors.white)),
-            Text('${(fraction * 100).toStringAsFixed(0)}%', style: TextStyle(fontSize: 12, color: color, fontWeight: FontWeight.bold)),
+            Text(title,
+                style: const TextStyle(fontSize: 12, color: Colors.white)),
+            Text('${(fraction * 100).toStringAsFixed(0)}%',
+                style: TextStyle(
+                    fontSize: 12, color: color, fontWeight: FontWeight.bold)),
           ],
         ),
         const SizedBox(height: 6),
@@ -213,4 +261,3 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
     );
   }
 }
-

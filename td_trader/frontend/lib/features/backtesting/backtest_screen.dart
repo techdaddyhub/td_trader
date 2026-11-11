@@ -7,7 +7,8 @@ class StrategyBacktesterScreen extends StatefulWidget {
   const StrategyBacktesterScreen({super.key});
 
   @override
-  State<StrategyBacktesterScreen> createState() => _StrategyBacktesterScreenState();
+  State<StrategyBacktesterScreen> createState() =>
+      _StrategyBacktesterScreenState();
 }
 
 class _StrategyBacktesterScreenState extends State<StrategyBacktesterScreen> {
@@ -34,7 +35,13 @@ class _StrategyBacktesterScreenState extends State<StrategyBacktesterScreen> {
     'XAUUSD',
     'BTCUSD',
     'US30',
-    'UKOIL'
+    'UKOIL',
+    'V75',
+    'V100',
+    'V50',
+    'BOOM1000',
+    'CRASH1000',
+    'STEP',
   ];
 
   Future<void> _runBacktest() async {
@@ -62,7 +69,9 @@ class _StrategyBacktesterScreenState extends State<StrategyBacktesterScreen> {
       });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Backtest error: $e'), backgroundColor: AppColors.bearishRed),
+        SnackBar(
+            content: Text('Backtest error: $e'),
+            backgroundColor: AppColors.bearishRed),
       );
     } finally {
       setState(() {
@@ -78,13 +87,16 @@ class _StrategyBacktesterScreenState extends State<StrategyBacktesterScreen> {
     });
 
     try {
-      final res = await apiService.compareStrategies(_selectedInstrument, _strategies);
+      final res =
+          await apiService.compareStrategies(_selectedInstrument, _strategies);
       setState(() {
         _comparisonResults = res;
       });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Comparison error: $e'), backgroundColor: AppColors.bearishRed),
+        SnackBar(
+            content: Text('Comparison error: $e'),
+            backgroundColor: AppColors.bearishRed),
       );
     } finally {
       setState(() {
@@ -101,7 +113,9 @@ class _StrategyBacktesterScreenState extends State<StrategyBacktesterScreen> {
         actions: [
           TextButton.icon(
             icon: const Icon(Icons.compare_arrows, color: AppColors.goldAccent),
-            label: const Text('COMPARE STRATEGIES', style: TextStyle(color: AppColors.goldAccent, fontWeight: FontWeight.bold)),
+            label: const Text('COMPARE STRATEGIES',
+                style: TextStyle(
+                    color: AppColors.goldAccent, fontWeight: FontWeight.bold)),
             onPressed: _runComparison,
           ),
         ],
@@ -112,41 +126,65 @@ class _StrategyBacktesterScreenState extends State<StrategyBacktesterScreen> {
           // Configuration Card
           Card(
             color: AppColors.surface,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('STRATEGY CONFIGURATION', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.textSecondary)),
+                  const Text('STRATEGY CONFIGURATION',
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                          color: AppColors.textSecondary)),
                   const SizedBox(height: 12),
                   Row(
                     children: [
                       Expanded(
                         child: DropdownButtonFormField<String>(
-                          value: _selectedStrategy,
-                          decoration: const InputDecoration(labelText: 'Strategy'),
-                          items: _strategies.map((s) => DropdownMenuItem(value: s, child: Text(s, style: const TextStyle(fontSize: 13)))).toList(),
-                          onChanged: (val) => setState(() => _selectedStrategy = val!),
+                          initialValue: _selectedStrategy,
+                          decoration:
+                              const InputDecoration(labelText: 'Strategy'),
+                          items: _strategies
+                              .map((s) => DropdownMenuItem(
+                                  value: s,
+                                  child: Text(s,
+                                      style: const TextStyle(fontSize: 13))))
+                              .toList(),
+                          onChanged: (val) =>
+                              setState(() => _selectedStrategy = val!),
                         ),
                       ),
                       const SizedBox(width: 10),
                       Expanded(
                         child: DropdownButtonFormField<String>(
-                          value: _selectedInstrument,
-                          decoration: const InputDecoration(labelText: 'Instrument'),
-                          items: _instruments.map((i) => DropdownMenuItem(value: i, child: Text(i, style: const TextStyle(fontSize: 13)))).toList(),
-                          onChanged: (val) => setState(() => _selectedInstrument = val!),
+                          initialValue: _selectedInstrument,
+                          decoration:
+                              const InputDecoration(labelText: 'Instrument'),
+                          items: _instruments
+                              .map((i) => DropdownMenuItem(
+                                  value: i,
+                                  child: Text(i,
+                                      style: const TextStyle(fontSize: 13))))
+                              .toList(),
+                          onChanged: (val) =>
+                              setState(() => _selectedInstrument = val!),
                         ),
                       ),
                       const SizedBox(width: 10),
                       SizedBox(
                         width: 90,
                         child: DropdownButtonFormField<String>(
-                          value: _selectedTimeframe,
-                          decoration: const InputDecoration(labelText: 'Timeframe'),
-                          items: ['M15', 'H1', 'H4', 'D1'].map((t) => DropdownMenuItem(value: t, child: Text(t))).toList(),
-                          onChanged: (val) => setState(() => _selectedTimeframe = val!),
+                          initialValue: _selectedTimeframe,
+                          decoration:
+                              const InputDecoration(labelText: 'Timeframe'),
+                          items: ['M15', 'H1', 'H4', 'D1']
+                              .map((t) =>
+                                  DropdownMenuItem(value: t, child: Text(t)))
+                              .toList(),
+                          onChanged: (val) =>
+                              setState(() => _selectedTimeframe = val!),
                         ),
                       ),
                     ],
@@ -155,8 +193,13 @@ class _StrategyBacktesterScreenState extends State<StrategyBacktesterScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('Risk Per Trade: ${_riskPct.toStringAsFixed(1)}%', style: const TextStyle(color: AppColors.textSecondary)),
-                      Text('Initial Capital: \$${_initialBalance.toStringAsFixed(0)}', style: const TextStyle(color: AppColors.textSecondary)),
+                      Text('Risk Per Trade: ${_riskPct.toStringAsFixed(1)}%',
+                          style:
+                              const TextStyle(color: AppColors.textSecondary)),
+                      Text(
+                          'Initial Capital: \$${_initialBalance.toStringAsFixed(0)}',
+                          style:
+                              const TextStyle(color: AppColors.textSecondary)),
                     ],
                   ),
                   const SizedBox(height: 14),
@@ -164,7 +207,8 @@ class _StrategyBacktesterScreenState extends State<StrategyBacktesterScreen> {
                     width: double.infinity,
                     child: ElevatedButton.icon(
                       icon: const Icon(Icons.play_arrow),
-                      label: const Text('RUN QUANTITATIVE BACKTEST (WITH WALK-FORWARD)'),
+                      label: const Text(
+                          'RUN QUANTITATIVE BACKTEST (WITH WALK-FORWARD)'),
                       onPressed: _isLoading ? null : _runBacktest,
                     ),
                   ),
@@ -175,11 +219,19 @@ class _StrategyBacktesterScreenState extends State<StrategyBacktesterScreen> {
           const SizedBox(height: 16),
 
           if (_isLoading)
-            const Center(child: Padding(padding: EdgeInsets.all(32), child: CircularProgressIndicator(color: AppColors.primaryCyan))),
+            const Center(
+                child: Padding(
+                    padding: EdgeInsets.all(32),
+                    child: CircularProgressIndicator(
+                        color: AppColors.primaryCyan))),
 
           // Side-by-Side Strategy Comparison View
           if (_comparisonResults != null) ...[
-            const Text('SIDE-BY-SIDE STRATEGY COMPARISON', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.goldAccent)),
+            const Text('SIDE-BY-SIDE STRATEGY COMPARISON',
+                style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                    color: AppColors.goldAccent)),
             const SizedBox(height: 8),
             Card(
               color: AppColors.surface,
@@ -197,8 +249,14 @@ class _StrategyBacktesterScreenState extends State<StrategyBacktesterScreen> {
                   rows: _comparisonResults!.map((row) {
                     final net = (row['net_profit'] as num).toDouble();
                     return DataRow(cells: [
-                      DataCell(Text(row['strategy_name'].toString(), style: const TextStyle(fontWeight: FontWeight.bold))),
-                      DataCell(Text('\$${net.toStringAsFixed(2)}', style: TextStyle(color: net >= 0 ? AppColors.bullishGreen : AppColors.bearishRed, fontWeight: FontWeight.bold))),
+                      DataCell(Text(row['strategy_name'].toString(),
+                          style: const TextStyle(fontWeight: FontWeight.bold))),
+                      DataCell(Text('\$${net.toStringAsFixed(2)}',
+                          style: TextStyle(
+                              color: net >= 0
+                                  ? AppColors.bullishGreen
+                                  : AppColors.bearishRed,
+                              fontWeight: FontWeight.bold))),
                       DataCell(Text('${row['win_rate']}%')),
                       DataCell(Text('${row['profit_factor']}')),
                       DataCell(Text('${row['max_drawdown_pct']}%')),
@@ -221,12 +279,14 @@ class _StrategyBacktesterScreenState extends State<StrategyBacktesterScreen> {
               ),
               child: Row(
                 children: const [
-                  Icon(Icons.shield_outlined, size: 16, color: AppColors.primaryCyan),
+                  Icon(Icons.shield_outlined,
+                      size: 16, color: AppColors.primaryCyan),
                   SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       'Includes realistic spread (1.2 pips), slippage (0.5 pips), and broker commissions (\$5/lot). Historical results never guarantee future performance.',
-                      style: TextStyle(color: AppColors.textSecondary, fontSize: 11),
+                      style: TextStyle(
+                          color: AppColors.textSecondary, fontSize: 11),
                     ),
                   ),
                 ],
@@ -241,14 +301,28 @@ class _StrategyBacktesterScreenState extends State<StrategyBacktesterScreen> {
               mainAxisSpacing: 10,
               childAspectRatio: 1.5,
               children: [
-                _buildStatCard('Net Profit', '\$${_result!['net_profit']}', _result!['net_profit'] >= 0 ? AppColors.bullishGreen : AppColors.bearishRed),
-                _buildStatCard('Win Rate', '${_result!['win_rate']}%', AppColors.primaryCyan),
-                _buildStatCard('Profit Factor', '${_result!['profit_factor']}', AppColors.goldAccent),
-                _buildStatCard('Max Drawdown', '${_result!['max_drawdown_pct']}%', AppColors.bearishRed),
-                _buildStatCard('Total Trades', '${_result!['total_trades']}', Colors.white),
-                _buildStatCard('Sharpe Ratio', '${_result!['sharpe_ratio']}', AppColors.primaryCyan),
-                _buildStatCard('Expectancy', '\$${_result!['expectancy_usd']}', Colors.white),
-                _buildStatCard('WFE Efficiency', '${_result!['walk_forward_metrics']?['walk_forward_efficiency_pct'] ?? 80}%', AppColors.bullishGreen),
+                _buildStatCard(
+                    'Net Profit',
+                    '\$${_result!['net_profit']}',
+                    _result!['net_profit'] >= 0
+                        ? AppColors.bullishGreen
+                        : AppColors.bearishRed),
+                _buildStatCard('Win Rate', '${_result!['win_rate']}%',
+                    AppColors.primaryCyan),
+                _buildStatCard('Profit Factor', '${_result!['profit_factor']}',
+                    AppColors.goldAccent),
+                _buildStatCard('Max Drawdown',
+                    '${_result!['max_drawdown_pct']}%', AppColors.bearishRed),
+                _buildStatCard('Total Trades', '${_result!['total_trades']}',
+                    Colors.white),
+                _buildStatCard('Sharpe Ratio', '${_result!['sharpe_ratio']}',
+                    AppColors.primaryCyan),
+                _buildStatCard('Expectancy', '\$${_result!['expectancy_usd']}',
+                    Colors.white),
+                _buildStatCard(
+                    'WFE Efficiency',
+                    '${_result!['walk_forward_metrics']?['walk_forward_efficiency_pct'] ?? 80}%',
+                    AppColors.bullishGreen),
               ],
             ),
           ],
@@ -269,12 +343,14 @@ class _StrategyBacktesterScreenState extends State<StrategyBacktesterScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(title, style: const TextStyle(color: AppColors.textMuted, fontSize: 11)),
+          Text(title,
+              style: const TextStyle(color: AppColors.textMuted, fontSize: 11)),
           const SizedBox(height: 4),
-          Text(val, style: TextStyle(color: valColor, fontWeight: FontWeight.bold, fontSize: 16)),
+          Text(val,
+              style: TextStyle(
+                  color: valColor, fontWeight: FontWeight.bold, fontSize: 16)),
         ],
       ),
     );
   }
 }
-

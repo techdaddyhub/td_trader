@@ -9,17 +9,20 @@ from datetime import datetime
 import json
 from td_trader.backend.app.models.entities import TradingAccount, RiskConfiguration, AuditLog, Order, Position
 from td_trader.backend.app.schemas.schemas import RiskConfigUpdate, EmergencyActionRequest
-from td_trader.ai_engine.market_scanner.market_data_feed import INSTRUMENT_CATALOG, market_data_feed
+from td_trader.ai_engine.market_scanner.market_data_feed import INSTRUMENT_CATALOG, market_data_feed, get_pip_value_per_lot
 from td_trader.ai_engine.voice_engine.voice_service import td_ai_voice_engine
 
-# Currency correlation mapping for correlated exposure checks
+# Currency & asset correlation mapping for correlated exposure checks
 CURRENCY_CORRELATION_CLUSTERS = {
     "USD": ["EURUSD", "GBPUSD", "USDJPY", "USDCAD", "AUDUSD", "BTCUSD", "XAUUSD"],
     "EUR": ["EURUSD", "EURGBP", "EURJPY"],
     "GBP": ["GBPUSD", "EURGBP", "GBPJPY"],
     "JPY": ["USDJPY", "GBPJPY", "EURJPY"],
     "CRYPTO": ["BTCUSD", "ETHUSD", "SOLUSD", "XRPUSD"],
-    "COMMODITIES": ["XAUUSD", "XAGUSD", "USOIL", "UKOIL"]
+    "COMMODITIES": ["XAUUSD", "XAGUSD", "USOIL", "UKOIL"],
+    "SYNTHETICS_VOLATILITY": ["V75", "V100", "V50", "V25", "V10", "V75_1S"],
+    "SYNTHETICS_SPIKE": ["BOOM1000", "BOOM500", "CRASH1000", "CRASH500"],
+    "SYNTHETICS_STEP_JUMP": ["STEP", "JUMP75"],
 }
 
 class SmartRiskGuardian:
@@ -45,18 +48,7 @@ class SmartRiskGuardian:
             return 0.01
             
         risk_usd = equity * (risk_pct / 100.0)
-        
-        # Approximate standard lot pip value (Forex 100k units = ~$10/pip, Crypto = $1/point, Metals = $10/point)
-        if meta.get("category") == "FOREX":
-            pip_val_per_std_lot = 10.0
-        elif meta.get("category") == "CRYPTO":
-            pip_val_per_std_lot = 1.0
-        elif meta.get("category") == "METALS":
-            pip_val_per_std_lot = 10.0
-        elif meta.get("category") == "INDICES":
-            pip_val_per_std_lot = 1.0
-        else:
-            pip_val_per_std_lot = 10.0
+        pip_val_per_std_lot = get_pip_value_per_lot(symbol)
             
         raw_lots = risk_usd / (sl_pips * pip_val_per_std_lot)
         lots = round(max(0.01, min(raw_lots, max_lot_size)), 2)

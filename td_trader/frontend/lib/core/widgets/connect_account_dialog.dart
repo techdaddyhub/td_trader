@@ -1,5 +1,6 @@
 // Copyright (c) 2026 TechDaddy. All rights reserved.
-// TD TRADER - Advanced MetaTrader 4 & 5 (Demo & Live) Account Connector
+// TD TRADER - Unified Broker Connector (MetaTrader 4/5 & Deriv API Demo/Live)
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
@@ -8,18 +9,52 @@ import '../services/api_service.dart';
 
 void showConnectMetaTraderDialog(BuildContext context) {
   final accountNumController = TextEditingController();
-  final brokerController = TextEditingController(text: 'IC Markets (SC)');
-  final serverController = TextEditingController(text: 'ICMarketsSC-Live01');
+  final brokerController = TextEditingController(text: 'Deriv (SVG) LLC');
+  final serverController = TextEditingController(text: 'Deriv-Demo');
   final passwordController = TextEditingController();
+  final derivAppIdController = TextEditingController(text: '1089');
   final balanceController = TextEditingController(text: '10000.00');
-  
-  String platform = 'MT5_LIVE';
+
+  String platform = 'MT5_DEMO';
   String currency = 'USD';
-  String selectedPreset = 'ICMarkets-Live';
+  String selectedPreset = 'Deriv-MT5-Demo';
   bool isLiveAuthorized = false;
   bool isSubmitting = false;
+  bool isVerifyingDeriv = false;
+  String? derivVerifyStatus;
+  bool derivVerifyOk = false;
 
   final Map<String, Map<String, String>> brokerPresets = {
+    'Deriv-MT5-Demo': {
+      'broker': 'Deriv (SVG) LLC',
+      'server': 'Deriv-Demo',
+      'platform': 'MT5_DEMO',
+    },
+    'Deriv-MT5-Live': {
+      'broker': 'Deriv (SVG) LLC',
+      'server': 'Deriv-Server',
+      'platform': 'MT5_LIVE',
+    },
+    'Deriv-MT5-Live-02': {
+      'broker': 'Deriv (SVG) LLC',
+      'server': 'Deriv-Server-02',
+      'platform': 'MT5_LIVE',
+    },
+    'Deriv-MT5-SVG': {
+      'broker': 'Deriv (SVG) LLC',
+      'server': 'DerivSVG-Server',
+      'platform': 'MT5_LIVE',
+    },
+    'Deriv-API-Demo (Token)': {
+      'broker': 'Deriv Native WS API',
+      'server': 'ws.derivws.com',
+      'platform': 'DERIV_API_DEMO',
+    },
+    'Deriv-API-Live (Real CR Token)': {
+      'broker': 'Deriv Native WS API',
+      'server': 'ws.derivws.com',
+      'platform': 'DERIV_API_LIVE',
+    },
     'ICMarkets-Live': {
       'broker': 'IC Markets (SC)',
       'server': 'ICMarketsSC-Live01',
@@ -81,7 +116,8 @@ void showConnectMetaTraderDialog(BuildContext context) {
     context: context,
     builder: (ctx) => StatefulBuilder(
       builder: (ctx, setDialogState) {
-        final isLive = platform == 'MT4_LIVE' || platform == 'MT5_LIVE';
+        final isDerivApi = platform.startsWith('DERIV_API');
+        final isLive = platform.contains('LIVE');
 
         return AlertDialog(
           backgroundColor: AppColors.surface,
@@ -102,9 +138,16 @@ void showConnectMetaTraderDialog(BuildContext context) {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  isLive ? 'CONNECT LIVE METATRADER ACCOUNT' : 'CONNECT DEMO METATRADER ACCOUNT',
+                  isDerivApi
+                      ? (isLive
+                          ? 'CONNECT DERIV LIVE API'
+                          : 'CONNECT DERIV DEMO API')
+                      : (isLive
+                          ? 'CONNECT LIVE BROKER ACCOUNT'
+                          : 'CONNECT DEMO BROKER ACCOUNT'),
                   style: TextStyle(
-                    color: isLive ? AppColors.binanceGold : AppColors.bullishGreen,
+                    color:
+                        isLive ? AppColors.binanceGold : AppColors.bullishGreen,
                     fontWeight: FontWeight.bold,
                     fontSize: 15,
                   ),
@@ -113,61 +156,103 @@ void showConnectMetaTraderDialog(BuildContext context) {
             ],
           ),
           content: SizedBox(
-            width: 460,
+            width: 470,
             child: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // 1. Account Environment / Platform Selector
-                  const Text('1. SELECT PLATFORM & ENVIRONMENT', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.binanceGold)),
+                  const Text('1. SELECT PLATFORM & ENVIRONMENT',
+                      style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.binanceGold)),
                   const SizedBox(height: 6),
                   DropdownButtonFormField<String>(
-                    value: platform,
-                    decoration: const InputDecoration(labelText: 'Platform & Account Type'),
+                    key: ValueKey('platform_$platform'),
+                    initialValue: platform,
+                    decoration: const InputDecoration(
+                        labelText: 'Platform & Account Type'),
                     dropdownColor: AppColors.surface,
                     items: const [
                       DropdownMenuItem(
+                        value: 'DERIV_API_DEMO',
+                        child: Text('🟢 Deriv Native API - DEMO (VRTC Token)',
+                            style: TextStyle(color: AppColors.bullishGreen)),
+                      ),
+                      DropdownMenuItem(
+                        value: 'DERIV_API_LIVE',
+                        child: Text('⚡ Deriv Native API - LIVE (Real CR Token)',
+                            style: TextStyle(
+                                color: AppColors.binanceGold,
+                                fontWeight: FontWeight.bold)),
+                      ),
+                      DropdownMenuItem(
                         value: 'MT5_LIVE',
-                        child: Text('⚡ MetaTrader 5 (MT5) - LIVE Real Capital', style: TextStyle(color: AppColors.binanceGold, fontWeight: FontWeight.bold)),
+                        child: Text('⚡ MetaTrader 5 (MT5) - LIVE Real Capital',
+                            style: TextStyle(
+                                color: AppColors.binanceGold,
+                                fontWeight: FontWeight.bold)),
                       ),
                       DropdownMenuItem(
                         value: 'MT5_DEMO',
-                        child: Text('🟢 MetaTrader 5 (MT5) - DEMO Account', style: TextStyle(color: AppColors.bullishGreen)),
+                        child: Text('🟢 MetaTrader 5 (MT5) - DEMO Account',
+                            style: TextStyle(color: AppColors.bullishGreen)),
                       ),
                       DropdownMenuItem(
                         value: 'MT4_LIVE',
-                        child: Text('⚡ MetaTrader 4 (MT4) - LIVE Real Capital', style: TextStyle(color: AppColors.binanceGold, fontWeight: FontWeight.bold)),
+                        child: Text('⚡ MetaTrader 4 (MT4) - LIVE Real Capital',
+                            style: TextStyle(
+                                color: AppColors.binanceGold,
+                                fontWeight: FontWeight.bold)),
                       ),
                       DropdownMenuItem(
                         value: 'MT4_DEMO',
-                        child: Text('🟢 MetaTrader 4 (MT4) - DEMO Account', style: TextStyle(color: AppColors.bullishGreen)),
+                        child: Text('🟢 MetaTrader 4 (MT4) - DEMO Account',
+                            style: TextStyle(color: AppColors.bullishGreen)),
                       ),
                       DropdownMenuItem(
                         value: 'PAPER_TRADING',
-                        child: Text('🛡️ TD Risk-Free Paper Simulator (\$10k)', style: TextStyle(color: Colors.white)),
+                        child: Text('🛡️ TD Risk-Free Paper Simulator (\$10k)',
+                            style: TextStyle(color: Colors.white)),
                       ),
                     ],
                     onChanged: (val) {
                       setDialogState(() {
                         platform = val!;
+                        derivVerifyStatus = null;
+                        if (platform.startsWith('DERIV_API')) {
+                          brokerController.text = 'Deriv Native WS API';
+                          serverController.text =
+                              'ws.derivws.com (AppID: ${derivAppIdController.text.trim()})';
+                        }
                       });
                     },
                   ),
                   const SizedBox(height: 14),
 
                   // 2. Broker Preset Selector
-                  const Text('2. BROKER / PROP FIRM PRESET', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.binanceGold)),
+                  const Text('2. BROKER / DERIV / PROP FIRM PRESET',
+                      style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.binanceGold)),
                   const SizedBox(height: 6),
                   DropdownButtonFormField<String>(
-                    value: selectedPreset,
-                    decoration: const InputDecoration(labelText: 'Quick Broker Presets'),
+                    key: ValueKey('preset_$selectedPreset'),
+                    initialValue: selectedPreset,
+                    decoration: const InputDecoration(
+                        labelText: 'Quick Broker Presets'),
                     dropdownColor: AppColors.surface,
-                    items: brokerPresets.keys.map((k) => DropdownMenuItem(value: k, child: Text(k))).toList(),
+                    items: brokerPresets.keys
+                        .map((k) => DropdownMenuItem(value: k, child: Text(k)))
+                        .toList(),
                     onChanged: (val) {
                       setDialogState(() {
                         selectedPreset = val!;
                         final preset = brokerPresets[val]!;
+                        derivVerifyStatus = null;
                         if (val != 'Custom Broker') {
                           brokerController.text = preset['broker']!;
                           serverController.text = preset['server']!;
@@ -179,15 +264,197 @@ void showConnectMetaTraderDialog(BuildContext context) {
                   const SizedBox(height: 14),
 
                   // 3. Credentials & Server Details
-                  const Text('3. BROKER LOGIN & SERVER CREDENTIALS', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.binanceGold)),
+                  Text(
+                      isDerivApi
+                          ? '3. DERIV API TOKEN & ACCOUNT VERIFICATION'
+                          : '3. BROKER LOGIN & SERVER CREDENTIALS',
+                      style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.binanceGold)),
                   const SizedBox(height: 6),
+
+                  if (isDerivApi) ...[
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      margin: const EdgeInsets.only(bottom: 10),
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryCyan.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                            color: AppColors.primaryCyan.withValues(alpha: 0.3)),
+                      ),
+                      child: const Text(
+                        'Create a Deriv API Token at app.deriv.com/account/api-token with Read + Trade scopes, then click VERIFY TOKEN to auto-load your CR/VRTC account.',
+                        style: TextStyle(
+                            color: AppColors.textSecondary,
+                            fontSize: 11,
+                            height: 1.35),
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        Expanded(
+                          flex: 3,
+                          child: TextField(
+                            controller: passwordController,
+                            obscureText: true,
+                            decoration: const InputDecoration(
+                              labelText: 'Deriv API Token (AES-256)',
+                              hintText: 'Paste token from app.deriv.com',
+                              prefixIcon: Icon(Icons.vpn_key,
+                                  color: AppColors.binanceGold),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          flex: 1,
+                          child: TextField(
+                            controller: derivAppIdController,
+                            keyboardType: TextInputType.number,
+                            decoration: const InputDecoration(
+                              labelText: 'App ID',
+                              hintText: '1089',
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppColors.binanceGold,
+                          side: const BorderSide(color: AppColors.binanceGold),
+                        ),
+                        icon: isVerifyingDeriv
+                            ? const SizedBox(
+                                width: 15,
+                                height: 15,
+                                child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: AppColors.binanceGold),
+                              )
+                            : const Icon(Icons.verified_user, size: 17),
+                        label: Text(
+                          isVerifyingDeriv
+                              ? 'VERIFYING WITH DERIV WS...'
+                              : 'VERIFY DERIV TOKEN & AUTO-FILL',
+                          style: const TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 11),
+                        ),
+                        onPressed: isVerifyingDeriv
+                            ? null
+                            : () async {
+                                final token = passwordController.text.trim();
+                                final appId =
+                                    derivAppIdController.text.trim().isEmpty
+                                        ? '1089'
+                                        : derivAppIdController.text.trim();
+                                if (token.isEmpty) {
+                                  setDialogState(() {
+                                    derivVerifyOk = false;
+                                    derivVerifyStatus =
+                                        'Please paste your Deriv API token first.';
+                                  });
+                                  return;
+                                }
+                                setDialogState(() {
+                                  isVerifyingDeriv = true;
+                                  derivVerifyStatus = null;
+                                });
+                                try {
+                                  final info = await apiService.verifyDerivToken(
+                                      token,
+                                      appId: appId);
+                                  setDialogState(() {
+                                    isVerifyingDeriv = false;
+                                    derivVerifyOk = true;
+                                    accountNumController.text =
+                                        (info['loginid'] ?? '').toString();
+                                    balanceController.text =
+                                        ((info['balance'] ?? 0) as num)
+                                            .toDouble()
+                                            .toStringAsFixed(2);
+                                    final c =
+                                        (info['currency'] ?? 'USD').toString();
+                                    if ([
+                                      'USD',
+                                      'EUR',
+                                      'GBP',
+                                      'AUD',
+                                      'CAD',
+                                      'JPY'
+                                    ].contains(c)) {
+                                      currency = c;
+                                    }
+                                    platform = (info['recommended_platform'] ??
+                                            platform)
+                                        .toString();
+                                    brokerController.text =
+                                        'Deriv Native WS API';
+                                    serverController.text =
+                                        'ws.derivws.com (AppID: $appId)';
+                                    derivVerifyStatus =
+                                        'Verified ${(info['is_virtual'] == true) ? "DEMO" : "REAL LIVE"} account ${info['loginid']} • Balance: ${info['balance']} ${info['currency']}';
+                                  });
+                                } catch (e) {
+                                  setDialogState(() {
+                                    isVerifyingDeriv = false;
+                                    derivVerifyOk = false;
+                                    derivVerifyStatus =
+                                        'Verification failed: $e';
+                                  });
+                                }
+                              },
+                      ),
+                    ),
+                    if (derivVerifyStatus != null) ...[
+                      const SizedBox(height: 8),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: (derivVerifyOk
+                                  ? AppColors.bullishGreen
+                                  : AppColors.bearishRed)
+                              .withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(
+                            color: derivVerifyOk
+                                ? AppColors.bullishGreen
+                                : AppColors.bearishRed,
+                          ),
+                        ),
+                        child: Text(
+                          derivVerifyStatus!,
+                          style: TextStyle(
+                            color: derivVerifyOk
+                                ? AppColors.bullishGreen
+                                : AppColors.bearishRed,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 10),
+                  ],
+
                   TextField(
                     controller: accountNumController,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'Account Login / Account Number',
-                      hintText: 'e.g. 5829103',
-                      prefixIcon: Icon(Icons.person, color: AppColors.binanceGold),
+                    keyboardType:
+                        isDerivApi ? TextInputType.text : TextInputType.number,
+                    decoration: InputDecoration(
+                      labelText: isDerivApi
+                          ? 'Deriv Account ID (CR / VRTC)'
+                          : 'Account Login / Account Number',
+                      hintText:
+                          isDerivApi ? 'e.g. VRTC123456 or CR987654' : 'e.g. 5829103',
+                      prefixIcon:
+                          const Icon(Icons.person, color: AppColors.binanceGold),
                     ),
                   ),
                   const SizedBox(height: 10),
@@ -196,49 +463,63 @@ void showConnectMetaTraderDialog(BuildContext context) {
                       Expanded(
                         child: TextField(
                           controller: brokerController,
-                          decoration: const InputDecoration(labelText: 'Broker Name', hintText: 'IC Markets'),
+                          decoration: const InputDecoration(
+                              labelText: 'Broker Name',
+                              hintText: 'Deriv (SVG) LLC'),
                         ),
                       ),
                       const SizedBox(width: 10),
                       Expanded(
                         child: TextField(
                           controller: serverController,
-                          decoration: const InputDecoration(labelText: 'Server Name', hintText: 'ICMarketsSC-Live01'),
+                          decoration: const InputDecoration(
+                              labelText: 'Server Name',
+                              hintText: 'Deriv-Demo / Deriv-Server'),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 10),
-                  TextField(
-                    controller: passwordController,
-                    obscureText: true,
-                    decoration: const InputDecoration(
-                      labelText: 'Password (Encrypted AES-256)',
-                      hintText: 'Master or Investor Password',
-                      prefixIcon: Icon(Icons.lock, color: AppColors.binanceGold),
-                      helperText: 'Encrypted at rest immediately. Never stored plaintext.',
+                  if (!isDerivApi) ...[
+                    const SizedBox(height: 10),
+                    TextField(
+                      controller: passwordController,
+                      obscureText: true,
+                      decoration: const InputDecoration(
+                        labelText: 'Password (Encrypted AES-256)',
+                        hintText: 'Master or Investor Password',
+                        prefixIcon:
+                            Icon(Icons.lock, color: AppColors.binanceGold),
+                        helperText:
+                            'Encrypted at rest immediately. Never stored plaintext.',
+                      ),
                     ),
-                  ),
+                  ],
                   const SizedBox(height: 10),
                   Row(
                     children: [
                       Expanded(
                         child: TextField(
                           controller: balanceController,
-                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                          decoration: const InputDecoration(labelText: 'Balance / Equity', prefixText: '\$'),
+                          keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true),
+                          decoration: const InputDecoration(
+                              labelText: 'Balance / Equity', prefixText: '\$'),
                         ),
                       ),
                       const SizedBox(width: 10),
                       Expanded(
                         child: DropdownButtonFormField<String>(
-                          value: currency,
-                          decoration: const InputDecoration(labelText: 'Currency'),
+                          key: ValueKey('currency_$currency'),
+                          initialValue: currency,
+                          decoration:
+                              const InputDecoration(labelText: 'Currency'),
                           dropdownColor: AppColors.surface,
                           items: ['USD', 'EUR', 'GBP', 'AUD', 'CAD', 'JPY']
-                              .map((c) => DropdownMenuItem(value: c, child: Text(c)))
+                              .map((c) =>
+                                  DropdownMenuItem(value: c, child: Text(c)))
                               .toList(),
-                          onChanged: (val) => setDialogState(() => currency = val!),
+                          onChanged: (val) =>
+                              setDialogState(() => currency = val!),
                         ),
                       ),
                     ],
@@ -250,7 +531,7 @@ void showConnectMetaTraderDialog(BuildContext context) {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: AppColors.binanceGold.withOpacity(0.12),
+                        color: AppColors.binanceGold.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(color: AppColors.binanceGold),
                       ),
@@ -259,11 +540,15 @@ void showConnectMetaTraderDialog(BuildContext context) {
                         children: [
                           Row(
                             children: const [
-                              Icon(Icons.warning_amber, color: AppColors.binanceGold, size: 20),
+                              Icon(Icons.warning_amber,
+                                  color: AppColors.binanceGold, size: 20),
                               SizedBox(width: 8),
                               Text(
                                 'LIVE CAPITAL WARNING',
-                                style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.binanceGold, fontSize: 12),
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.binanceGold,
+                                    fontSize: 12),
                               ),
                             ],
                           ),
@@ -271,7 +556,10 @@ void showConnectMetaTraderDialog(BuildContext context) {
                           const Text(
                             'You are connecting a LIVE real-money broker account. Orders executed will risk actual capital. '
                             'The Smart Risk Guardian will enforce lot sizing and daily loss limits.',
-                            style: TextStyle(color: AppColors.textPrimary, fontSize: 11, height: 1.4),
+                            style: TextStyle(
+                                color: AppColors.textPrimary,
+                                fontSize: 11,
+                                height: 1.4),
                           ),
                           const SizedBox(height: 8),
                           Row(
@@ -280,12 +568,16 @@ void showConnectMetaTraderDialog(BuildContext context) {
                                 value: isLiveAuthorized,
                                 activeColor: AppColors.binanceGold,
                                 checkColor: Colors.black,
-                                onChanged: (val) => setDialogState(() => isLiveAuthorized = val ?? false),
+                                onChanged: (val) => setDialogState(
+                                    () => isLiveAuthorized = val ?? false),
                               ),
                               const Expanded(
                                 child: Text(
                                   'I authorize live broker execution with Risk Guardian active.',
-                                  style: TextStyle(fontSize: 11, color: AppColors.textPrimary, fontWeight: FontWeight.bold),
+                                  style: TextStyle(
+                                      fontSize: 11,
+                                      color: AppColors.textPrimary,
+                                      fontWeight: FontWeight.bold),
                                 ),
                               ),
                             ],
@@ -301,20 +593,34 @@ void showConnectMetaTraderDialog(BuildContext context) {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: const Text('CANCEL', style: TextStyle(color: AppColors.textSecondary)),
+              child: const Text('CANCEL',
+                  style: TextStyle(color: AppColors.textSecondary)),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: isLive ? AppColors.binanceGold : AppColors.bullishGreen,
+                backgroundColor:
+                    isLive ? AppColors.binanceGold : AppColors.bullishGreen,
                 foregroundColor: const Color(0xFF0B0E11),
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               ),
               onPressed: isSubmitting
                   ? null
                   : () async {
                       if (accountNumController.text.trim().isEmpty) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Please enter an account login number.')),
+                          SnackBar(
+                              content: Text(isDerivApi
+                                  ? 'Please verify your Deriv token or enter a CR/VRTC Account ID.'
+                                  : 'Please enter an account login number.')),
+                        );
+                        return;
+                      }
+
+                      if (isDerivApi && passwordController.text.trim().isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                              content: Text('Please enter your Deriv API Token.')),
                         );
                         return;
                       }
@@ -322,7 +628,8 @@ void showConnectMetaTraderDialog(BuildContext context) {
                       if (isLive && !isLiveAuthorized) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
-                            content: Text('Please check the live authorization box to confirm real capital connection.'),
+                            content: Text(
+                                'Please check the live authorization box to confirm real capital connection.'),
                             backgroundColor: AppColors.bearishRed,
                           ),
                         );
@@ -332,24 +639,39 @@ void showConnectMetaTraderDialog(BuildContext context) {
                       setDialogState(() => isSubmitting = true);
 
                       try {
+                        final appId = derivAppIdController.text.trim().isEmpty
+                            ? '1089'
+                            : derivAppIdController.text.trim();
+                        final credentialPayload = isDerivApi
+                            ? jsonEncode({
+                                'api_token': passwordController.text.trim(),
+                                'app_id': appId,
+                              })
+                            : passwordController.text;
+
                         await apiService.addAccount({
                           'account_number': accountNumController.text.trim(),
                           'broker_name': brokerController.text.trim(),
                           'server': serverController.text.trim(),
                           'platform': platform,
                           'currency': currency,
-                          'password': passwordController.text,
-                          'balance': double.tryParse(balanceController.text) ?? 10000.0,
-                          'is_auto_trading_enabled': isLive ? isLiveAuthorized : true,
+                          'password': credentialPayload,
+                          'balance': double.tryParse(balanceController.text) ??
+                              10000.0,
+                          'is_auto_trading_enabled':
+                              isLive ? isLiveAuthorized : true,
                           'is_authorized_live': isLiveAuthorized,
                         });
 
                         if (context.mounted) {
                           Navigator.pop(ctx);
-                          await Provider.of<AccountProvider>(context, listen: false).loadAccounts();
+                          await Provider.of<AccountProvider>(context,
+                                  listen: false)
+                              .loadAccounts();
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text('MetaTrader $platform account #${accountNumController.text} connected!'),
+                              content: Text(
+                                  '$platform account #${accountNumController.text} connected!'),
                               backgroundColor: AppColors.bullishGreen,
                             ),
                           );
@@ -358,14 +680,17 @@ void showConnectMetaTraderDialog(BuildContext context) {
                         setDialogState(() => isSubmitting = false);
                         if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Connection error: $e'), backgroundColor: AppColors.bearishRed),
+                            SnackBar(
+                                content: Text('Connection error: $e'),
+                                backgroundColor: AppColors.bearishRed),
                           );
                         }
                       }
                     },
               child: Text(
                 isLive ? 'CONNECT LIVE ACCOUNT' : 'CONNECT DEMO ACCOUNT',
-                style: const TextStyle(fontWeight: FontWeight.w900, letterSpacing: 0.8),
+                style: const TextStyle(
+                    fontWeight: FontWeight.w900, letterSpacing: 0.8),
               ),
             ),
           ],

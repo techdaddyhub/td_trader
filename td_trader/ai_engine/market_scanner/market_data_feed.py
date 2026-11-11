@@ -12,36 +12,63 @@ import pandas as pd
 
 INSTRUMENT_CATALOG = {
     # Forex
-    "EURUSD": {"category": "FOREX", "pip_size": 0.0001, "digits": 5, "base_price": 1.0850, "typical_spread": 1.1},
-    "GBPUSD": {"category": "FOREX", "pip_size": 0.0001, "digits": 5, "base_price": 1.2950, "typical_spread": 1.4},
-    "USDJPY": {"category": "FOREX", "pip_size": 0.01, "digits": 3, "base_price": 152.40, "typical_spread": 1.3},
-    "AUDUSD": {"category": "FOREX", "pip_size": 0.0001, "digits": 5, "base_price": 0.6580, "typical_spread": 1.2},
-    "USDCAD": {"category": "FOREX", "pip_size": 0.0001, "digits": 5, "base_price": 1.3880, "typical_spread": 1.5},
-    "EURGBP": {"category": "FOREX", "pip_size": 0.0001, "digits": 5, "base_price": 0.8380, "typical_spread": 1.6},
-    "GBPJPY": {"category": "FOREX", "pip_size": 0.01, "digits": 3, "base_price": 197.50, "typical_spread": 2.1},
-    
+    "EURUSD": {"category": "FOREX", "pip_size": 0.0001, "digits": 5, "base_price": 1.0850, "typical_spread": 1.1, "deriv_symbol": "frxEURUSD"},
+    "GBPUSD": {"category": "FOREX", "pip_size": 0.0001, "digits": 5, "base_price": 1.2950, "typical_spread": 1.4, "deriv_symbol": "frxGBPUSD"},
+    "USDJPY": {"category": "FOREX", "pip_size": 0.01, "digits": 3, "base_price": 152.40, "typical_spread": 1.3, "deriv_symbol": "frxUSDJPY"},
+    "AUDUSD": {"category": "FOREX", "pip_size": 0.0001, "digits": 5, "base_price": 0.6580, "typical_spread": 1.2, "deriv_symbol": "frxAUDUSD"},
+    "USDCAD": {"category": "FOREX", "pip_size": 0.0001, "digits": 5, "base_price": 1.3880, "typical_spread": 1.5, "deriv_symbol": "frxUSDCAD"},
+    "EURGBP": {"category": "FOREX", "pip_size": 0.0001, "digits": 5, "base_price": 0.8380, "typical_spread": 1.6, "deriv_symbol": "frxEURGBP"},
+    "GBPJPY": {"category": "FOREX", "pip_size": 0.01, "digits": 3, "base_price": 197.50, "typical_spread": 2.1, "deriv_symbol": "frxGBPJPY"},
+
+    # Deriv Synthetic & Derived Indices (24/7 Markets)
+    "V75": {"category": "SYNTHETICS", "display_name": "Volatility 75 Index", "pip_size": 0.01, "digits": 2, "base_price": 235420.50, "typical_spread": 4.5, "pip_value_per_lot": 0.01, "deriv_symbol": "R_75"},
+    "V100": {"category": "SYNTHETICS", "display_name": "Volatility 100 Index", "pip_size": 0.01, "digits": 2, "base_price": 1685.20, "typical_spread": 2.0, "pip_value_per_lot": 0.01, "deriv_symbol": "R_100"},
+    "V50": {"category": "SYNTHETICS", "display_name": "Volatility 50 Index", "pip_size": 0.0001, "digits": 4, "base_price": 184.3200, "typical_spread": 2.5, "pip_value_per_lot": 0.0001, "deriv_symbol": "R_50"},
+    "V25": {"category": "SYNTHETICS", "display_name": "Volatility 25 Index", "pip_size": 0.001, "digits": 3, "base_price": 2415.650, "typical_spread": 2.0, "pip_value_per_lot": 0.001, "deriv_symbol": "R_25"},
+    "V10": {"category": "SYNTHETICS", "display_name": "Volatility 10 Index", "pip_size": 0.001, "digits": 3, "base_price": 6840.250, "typical_spread": 1.5, "pip_value_per_lot": 0.001, "deriv_symbol": "R_10"},
+    "V75_1S": {"category": "SYNTHETICS", "display_name": "Volatility 75 (1s) Index", "pip_size": 0.01, "digits": 2, "base_price": 3890.40, "typical_spread": 2.5, "pip_value_per_lot": 0.01, "deriv_symbol": "1HZ75V"},
+    "BOOM1000": {"category": "SYNTHETICS", "display_name": "Boom 1000 Index", "pip_size": 0.01, "digits": 2, "base_price": 13420.50, "typical_spread": 3.5, "pip_value_per_lot": 0.01, "deriv_symbol": "BOOM1000"},
+    "BOOM500": {"category": "SYNTHETICS", "display_name": "Boom 500 Index", "pip_size": 0.01, "digits": 2, "base_price": 5120.40, "typical_spread": 3.0, "pip_value_per_lot": 0.01, "deriv_symbol": "BOOM500"},
+    "CRASH1000": {"category": "SYNTHETICS", "display_name": "Crash 1000 Index", "pip_size": 0.01, "digits": 2, "base_price": 6410.80, "typical_spread": 3.5, "pip_value_per_lot": 0.01, "deriv_symbol": "CRASH1000"},
+    "CRASH500": {"category": "SYNTHETICS", "display_name": "Crash 500 Index", "pip_size": 0.01, "digits": 2, "base_price": 4280.15, "typical_spread": 3.0, "pip_value_per_lot": 0.01, "deriv_symbol": "CRASH500"},
+    "STEP": {"category": "SYNTHETICS", "display_name": "Step Index", "pip_size": 0.1, "digits": 1, "base_price": 8425.0, "typical_spread": 1.0, "pip_value_per_lot": 1.0, "deriv_symbol": "stpRNG"},
+    "JUMP75": {"category": "SYNTHETICS", "display_name": "Jump 75 Index", "pip_size": 0.01, "digits": 2, "base_price": 52310.00, "typical_spread": 4.0, "pip_value_per_lot": 0.01, "deriv_symbol": "JD75"},
+
     # Crypto
-    "BTCUSD": {"category": "CRYPTO", "pip_size": 1.0, "digits": 2, "base_price": 68500.0, "typical_spread": 15.0},
-    "ETHUSD": {"category": "CRYPTO", "pip_size": 0.1, "digits": 2, "base_price": 2550.0, "typical_spread": 2.5},
+    "BTCUSD": {"category": "CRYPTO", "pip_size": 1.0, "digits": 2, "base_price": 68500.0, "typical_spread": 15.0, "deriv_symbol": "cryBTCUSD"},
+    "ETHUSD": {"category": "CRYPTO", "pip_size": 0.1, "digits": 2, "base_price": 2550.0, "typical_spread": 2.5, "deriv_symbol": "cryETHUSD"},
     "SOLUSD": {"category": "CRYPTO", "pip_size": 0.01, "digits": 2, "base_price": 178.50, "typical_spread": 0.25},
     "XRPUSD": {"category": "CRYPTO", "pip_size": 0.0001, "digits": 4, "base_price": 0.5250, "typical_spread": 0.0008},
-    
+
     # Metals
-    "XAUUSD": {"category": "METALS", "pip_size": 0.01, "digits": 2, "base_price": 2745.50, "typical_spread": 1.8},
-    "XAGUSD": {"category": "METALS", "pip_size": 0.001, "digits": 3, "base_price": 32.80, "typical_spread": 2.2},
-    "XPTUSD": {"category": "METALS", "pip_size": 0.1, "digits": 2, "base_price": 1015.0, "typical_spread": 3.5},
-    
+    "XAUUSD": {"category": "METALS", "pip_size": 0.01, "digits": 2, "base_price": 2745.50, "typical_spread": 1.8, "deriv_symbol": "frxXAUUSD"},
+    "XAGUSD": {"category": "METALS", "pip_size": 0.001, "digits": 3, "base_price": 32.80, "typical_spread": 2.2, "deriv_symbol": "frxXAGUSD"},
+    "XPTUSD": {"category": "METALS", "pip_size": 0.1, "digits": 2, "base_price": 1015.0, "typical_spread": 3.5, "deriv_symbol": "frxXPTUSD"},
+
     # Indices
     "US30": {"category": "INDICES", "pip_size": 1.0, "digits": 1, "base_price": 42150.0, "typical_spread": 2.5},
     "NAS100": {"category": "INDICES", "pip_size": 1.0, "digits": 1, "base_price": 20120.0, "typical_spread": 1.8},
     "SPX500": {"category": "INDICES", "pip_size": 0.1, "digits": 2, "base_price": 5780.0, "typical_spread": 0.6},
     "GER40": {"category": "INDICES", "pip_size": 1.0, "digits": 1, "base_price": 19450.0, "typical_spread": 2.0},
-    
+
     # Commodities
     "USOIL": {"category": "COMMODITIES", "pip_size": 0.01, "digits": 2, "base_price": 71.40, "typical_spread": 2.5},
     "UKOIL": {"category": "COMMODITIES", "pip_size": 0.01, "digits": 2, "base_price": 75.20, "typical_spread": 2.8},
     "NATGAS": {"category": "COMMODITIES", "pip_size": 0.001, "digits": 3, "base_price": 2.680, "typical_spread": 3.0}
 }
+
+
+def get_pip_value_per_lot(symbol: str, default_other: float = 10.0) -> float:
+    """Return USD pip value per 1.0 standard lot for position sizing and PnL calculation."""
+    meta = INSTRUMENT_CATALOG.get(symbol, {"category": "FOREX"})
+    if "pip_value_per_lot" in meta:
+        return float(meta["pip_value_per_lot"])
+    cat = meta.get("category")
+    if cat in ("FOREX", "METALS"):
+        return 10.0
+    if cat in ("CRYPTO", "INDICES"):
+        return 1.0
+    return default_other
 
 class MarketDataFeed:
     """Provides streaming real-time prices and multi-timeframe OHLCV candles."""
@@ -115,8 +142,16 @@ class MarketDataFeed:
         """Return quotes for all registered multi-asset instruments."""
         return list(self.live_quotes.values())
 
-    def update_tick(self, symbol: str, bid: float, ask: float, is_real_time: bool = True, delay_seconds: int = 0):
-        """Update live quote from external feed or MT4/MT5 bridge."""
+    def update_tick(
+        self,
+        symbol: str,
+        bid: float,
+        ask: float,
+        is_real_time: bool = True,
+        delay_seconds: int = 0,
+        source: str = "SIMULATOR",
+    ):
+        """Update live quote from external feed (e.g., Deriv WS or MT4/MT5 bridge)."""
         if symbol in self.live_quotes:
             meta = INSTRUMENT_CATALOG[symbol]
             self.live_quotes[symbol]["bid"] = round(bid, meta["digits"])
@@ -125,6 +160,12 @@ class MarketDataFeed:
             self.live_quotes[symbol]["timestamp"] = datetime.utcnow().isoformat()
             self.live_quotes[symbol]["is_real_time"] = is_real_time
             self.live_quotes[symbol]["data_delay_seconds"] = delay_seconds
+            self.live_quotes[symbol]["source"] = source
+
+    def update_candles(self, symbol: str, timeframe: str, df: pd.DataFrame):
+        """Replace cached OHLCV candles with live broker historical bars (e.g. Deriv ticks_history)."""
+        if symbol in self.candle_cache and df is not None and not df.empty:
+            self.candle_cache[symbol][timeframe] = df
 
     def get_ohlcv(self, symbol: str, timeframe: str = "H1") -> pd.DataFrame:
         """Fetch OHLCV DataFrame for technical analysis and scanner processing."""

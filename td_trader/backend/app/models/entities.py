@@ -40,7 +40,7 @@ class TradingAccount(Base):
     account_number = Column(String(100), nullable=False)
     broker_name = Column(String(100), nullable=False)
     server = Column(String(150), nullable=False)
-    platform = Column(String(50), nullable=False)  # MT4_DEMO, MT4_LIVE, MT5_DEMO, MT5_LIVE, PAPER_TRADING
+    platform = Column(String(50), nullable=False)  # MT4_DEMO, MT4_LIVE, MT5_DEMO, MT5_LIVE, DERIV_API_DEMO, DERIV_API_LIVE, PAPER_TRADING
     currency = Column(String(10), default="USD")
     
     # Encrypted password (AES-256) - never store plaintext

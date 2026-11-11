@@ -22,6 +22,7 @@ class AccountSyncAndPortfolioService:
         
         market_exposure: Dict[str, float] = {
             "FOREX": 0.0,
+            "SYNTHETICS": 0.0,
             "CRYPTO": 0.0,
             "METALS": 0.0,
             "INDICES": 0.0,

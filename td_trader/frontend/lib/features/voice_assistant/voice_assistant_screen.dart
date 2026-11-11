@@ -46,13 +46,22 @@ class _VoiceAssistantScreenState extends State<VoiceAssistantScreen> {
         title: const Text('TD AI VOICE ANALYST'),
         actions: [
           PopupMenuButton<String>(
-            icon: const Icon(Icons.settings_voice, color: AppColors.primaryCyan),
+            icon:
+                const Icon(Icons.settings_voice, color: AppColors.primaryCyan),
             onSelected: (val) => voice.setPersonality(val),
             itemBuilder: (ctx) => [
-              const PopupMenuItem(value: 'Aria_Fintech_Pro', child: Text('Aria (Female Fintech Pro)')),
-              const PopupMenuItem(value: 'Sophia_Macro_Strategist', child: Text('Sophia (Global Macro)')),
-              const PopupMenuItem(value: 'Marcus_Quant_Lead', child: Text('Marcus (Male Quant Lead)')),
-              const PopupMenuItem(value: 'Alexander_Institutional', child: Text('Alexander (Risk Arbiter)')),
+              const PopupMenuItem(
+                  value: 'Aria_Fintech_Pro',
+                  child: Text('Aria (Female Fintech Pro)')),
+              const PopupMenuItem(
+                  value: 'Sophia_Macro_Strategist',
+                  child: Text('Sophia (Global Macro)')),
+              const PopupMenuItem(
+                  value: 'Marcus_Quant_Lead',
+                  child: Text('Marcus (Male Quant Lead)')),
+              const PopupMenuItem(
+                  value: 'Alexander_Institutional',
+                  child: Text('Alexander (Risk Arbiter)')),
             ],
           ),
         ],
@@ -68,13 +77,19 @@ class _VoiceAssistantScreenState extends State<VoiceAssistantScreen> {
               children: [
                 Text(
                   'Voice: ${voice.selectedPersonality.replaceAll("_", " ")}',
-                  style: const TextStyle(color: AppColors.primaryCyan, fontSize: 13, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                      color: AppColors.primaryCyan,
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold),
                 ),
                 Row(
                   children: [
-                    const Icon(Icons.speed, size: 16, color: AppColors.textSecondary),
+                    const Icon(Icons.speed,
+                        size: 16, color: AppColors.textSecondary),
                     const SizedBox(width: 4),
-                    Text('${voice.speechSpeed.toStringAsFixed(1)}x', style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+                    Text('${voice.speechSpeed.toStringAsFixed(1)}x',
+                        style: const TextStyle(
+                            color: AppColors.textSecondary, fontSize: 13)),
                   ],
                 ),
               ],
@@ -101,7 +116,9 @@ class _VoiceAssistantScreenState extends State<VoiceAssistantScreen> {
                 return Padding(
                   padding: const EdgeInsets.only(right: 8),
                   child: ActionChip(
-                    label: Text(q, style: const TextStyle(fontSize: 12, color: Colors.white)),
+                    label: Text(q,
+                        style:
+                            const TextStyle(fontSize: 12, color: Colors.white)),
                     backgroundColor: AppColors.surfaceLight,
                     onPressed: () => _submitQuestion(q),
                   ),
@@ -121,15 +138,22 @@ class _VoiceAssistantScreenState extends State<VoiceAssistantScreen> {
                 final isUser = msg['role'] == 'user';
 
                 return Align(
-                  alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
+                  alignment:
+                      isUser ? Alignment.centerRight : Alignment.centerLeft,
                   child: Container(
                     margin: const EdgeInsets.only(bottom: 12),
                     padding: const EdgeInsets.all(14),
-                    constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.8),
+                    constraints: BoxConstraints(
+                        maxWidth: MediaQuery.of(context).size.width * 0.8),
                     decoration: BoxDecoration(
-                      color: isUser ? AppColors.primaryCyan.withOpacity(0.2) : AppColors.surface,
+                      color: isUser
+                          ? AppColors.primaryCyan.withValues(alpha: 0.2)
+                          : AppColors.surface,
                       borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: isUser ? AppColors.primaryCyan : AppColors.border),
+                      border: Border.all(
+                          color: isUser
+                              ? AppColors.primaryCyan
+                              : AppColors.border),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -140,13 +164,17 @@ class _VoiceAssistantScreenState extends State<VoiceAssistantScreen> {
                             Icon(
                               isUser ? Icons.person : Icons.smart_toy,
                               size: 14,
-                              color: isUser ? AppColors.primaryCyan : AppColors.goldAccent,
+                              color: isUser
+                                  ? AppColors.primaryCyan
+                                  : AppColors.goldAccent,
                             ),
                             const SizedBox(width: 6),
                             Text(
                               isUser ? 'YOU' : 'TD AI ANALYST',
                               style: TextStyle(
-                                color: isUser ? AppColors.primaryCyan : AppColors.goldAccent,
+                                color: isUser
+                                    ? AppColors.primaryCyan
+                                    : AppColors.goldAccent,
                                 fontSize: 11,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -156,7 +184,8 @@ class _VoiceAssistantScreenState extends State<VoiceAssistantScreen> {
                         const SizedBox(height: 6),
                         Text(
                           msg['text'] ?? '',
-                          style: const TextStyle(color: Colors.white, fontSize: 14, height: 1.4),
+                          style: const TextStyle(
+                              color: Colors.white, fontSize: 14, height: 1.4),
                         ),
                       ],
                     ),
@@ -177,14 +206,16 @@ class _VoiceAssistantScreenState extends State<VoiceAssistantScreen> {
                     controller: _textController,
                     decoration: const InputDecoration(
                       hintText: 'Ask your AI personal trading analyst...',
-                      prefixIcon: Icon(Icons.record_voice_over, color: AppColors.primaryCyan),
+                      prefixIcon: Icon(Icons.record_voice_over,
+                          color: AppColors.primaryCyan),
                     ),
                     onSubmitted: (val) => _submitQuestion(val),
                   ),
                 ),
                 const SizedBox(width: 8),
                 IconButton(
-                  icon: const Icon(Icons.send_rounded, color: AppColors.primaryCyan),
+                  icon: const Icon(Icons.send_rounded,
+                      color: AppColors.primaryCyan),
                   onPressed: () => _submitQuestion(_textController.text),
                 ),
               ],
@@ -195,4 +226,3 @@ class _VoiceAssistantScreenState extends State<VoiceAssistantScreen> {
     );
   }
 }
-

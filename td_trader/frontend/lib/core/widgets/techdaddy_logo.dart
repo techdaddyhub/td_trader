@@ -36,12 +36,12 @@ class TechDaddyLogo extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.binanceGold.withOpacity(0.35),
+            color: AppColors.binanceGold.withValues(alpha: 0.35),
             blurRadius: size * 0.35,
             spreadRadius: size * 0.04,
           ),
           BoxShadow(
-            color: Colors.black.withOpacity(0.8),
+            color: Colors.black.withValues(alpha: 0.8),
             blurRadius: size * 0.2,
             offset: const Offset(0, 4),
           ),
@@ -58,7 +58,7 @@ class TechDaddyLogo extends StatelessWidget {
               height: size * 0.62,
               decoration: BoxDecoration(
                 border: Border.all(
-                  color: AppColors.binanceGold.withOpacity(0.20),
+                  color: AppColors.binanceGold.withValues(alpha: 0.20),
                   width: 1.2,
                 ),
               ),
@@ -71,7 +71,7 @@ class TechDaddyLogo extends StatelessWidget {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               border: Border.all(
-                color: AppColors.binanceGoldLight.withOpacity(0.45),
+                color: AppColors.binanceGoldLight.withValues(alpha: 0.45),
                 width: 1.0,
               ),
             ),
@@ -90,7 +90,7 @@ class TechDaddyLogo extends StatelessWidget {
                     color: AppColors.binanceGold,
                     shadows: [
                       Shadow(
-                        color: AppColors.binanceGold.withOpacity(0.8),
+                        color: AppColors.binanceGold.withValues(alpha: 0.8),
                         blurRadius: 8,
                       ),
                     ],
@@ -106,7 +106,8 @@ class TechDaddyLogo extends StatelessWidget {
                     color: AppColors.binanceGoldLight,
                     shadows: [
                       Shadow(
-                        color: AppColors.binanceGoldLight.withOpacity(0.9),
+                        color:
+                            AppColors.binanceGoldLight.withValues(alpha: 0.9),
                         blurRadius: 8,
                       ),
                     ],
