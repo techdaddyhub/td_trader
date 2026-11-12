@@ -6,6 +6,7 @@ import '../models/models.dart';
 
 class ApiService {
   String? _authToken;
+  static const Duration _timeout = Duration(seconds: 12);
 
   void setAuthToken(String token) {
     _authToken = token;
@@ -19,33 +20,49 @@ class ApiService {
     return headers;
   }
 
-  // --- Auth ---
-  Future<Map<String, dynamic>> login(String email, String password) async {
-    final response = await http.post(
-      Uri.parse('${AppConfig.baseUrl}${AppConfig.apiPrefix}/auth/login'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'email': email, 'password': password}),
-    );
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      _authToken = data['access_token'];
-      return data;
-    }
-    throw Exception('Login failed: ${response.body}');
+  String _extractDetail(http.Response response, String fallback) {
+    try {
+      final decoded = jsonDecode(response.body);
+      if (decoded is Map && decoded['detail'] != null) {
+        return decoded['detail'].toString();
+      }
+    } catch (_) {}
+    return '$fallback (HTTP ${response.statusCode})';
   }
 
-  Future<Map<String, dynamic>> register(String email, String fullName, String password) async {
-    final response = await http.post(
-      Uri.parse('${AppConfig.baseUrl}${AppConfig.apiPrefix}/auth/register'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'email': email, 'full_name': fullName, 'password': password}),
-    );
+  // --- Auth ---
+  Future<Map<String, dynamic>> login(String email, String password) async {
+    final response = await http
+        .post(
+          Uri.parse('${AppConfig.baseUrl}${AppConfig.apiPrefix}/auth/login'),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({'email': email, 'password': password}),
+        )
+        .timeout(_timeout);
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       _authToken = data['access_token'];
       return data;
     }
-    throw Exception('Registration failed: ${response.body}');
+    throw Exception(_extractDetail(response, 'Login failed'));
+  }
+
+  Future<Map<String, dynamic>> register(
+      String email, String fullName, String password) async {
+    final response = await http
+        .post(
+          Uri.parse('${AppConfig.baseUrl}${AppConfig.apiPrefix}/auth/register'),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode(
+              {'email': email, 'full_name': fullName, 'password': password}),
+        )
+        .timeout(_timeout);
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      _authToken = data['access_token'];
+      return data;
+    }
+    throw Exception(_extractDetail(response, 'Registration failed'));
   }
 
   // --- Module 1: Scanner ---
@@ -60,196 +77,276 @@ class ApiService {
     final queryParams = <String, String>{
       'min_score': minScore.toString(),
     };
-    if (category != null && category != 'ALL') queryParams['category'] = category;
+    if (category != null && category != 'ALL') {
+      queryParams['category'] = category;
+    }
     if (instrument != null) queryParams['instrument'] = instrument;
     if (timeframe != null) queryParams['timeframe'] = timeframe;
     if (direction != null) queryParams['direction'] = direction;
     if (strategy != null) queryParams['strategy'] = strategy;
 
-    final uri = Uri.parse('${AppConfig.baseUrl}${AppConfig.apiPrefix}/scanner/opportunities').replace(queryParameters: queryParams);
-    final response = await http.get(uri, headers: _headers);
+    final uri = Uri.parse(
+            '${AppConfig.baseUrl}${AppConfig.apiPrefix}/scanner/opportunities')
+        .replace(queryParameters: queryParams);
+    final response = await http.get(uri, headers: _headers).timeout(_timeout);
 
     if (response.statusCode == 200) {
       final List list = jsonDecode(response.body);
       return list.map((e) => SignalModel.fromJson(e)).toList();
     }
-    throw Exception('Failed to load scanner opportunities');
+    throw Exception(_extractDetail(response, 'Failed to load opportunities'));
   }
 
   Future<void> triggerScanNow() async {
-    await http.post(
-      Uri.parse('${AppConfig.baseUrl}${AppConfig.apiPrefix}/scanner/scan-now'),
-      headers: _headers,
-    );
+    final response = await http
+        .post(
+          Uri.parse(
+              '${AppConfig.baseUrl}${AppConfig.apiPrefix}/scanner/scan-now'),
+          headers: _headers,
+        )
+        .timeout(const Duration(seconds: 25));
+    if (response.statusCode != 200) {
+      throw Exception(_extractDetail(response, 'Scan failed'));
+    }
   }
 
   // --- Module 2: Voice ---
-  Future<Map<String, dynamic>> sendVoiceQuery(String query, String personality) async {
-    final response = await http.post(
-      Uri.parse('${AppConfig.baseUrl}${AppConfig.apiPrefix}/voice/query'),
-      headers: _headers,
-      body: jsonEncode({'query': query, 'voice_personality': personality}),
-    );
+  Future<Map<String, dynamic>> sendVoiceQuery(
+      String query, String personality) async {
+    final response = await http
+        .post(
+          Uri.parse('${AppConfig.baseUrl}${AppConfig.apiPrefix}/voice/query'),
+          headers: _headers,
+          body: jsonEncode({'query': query, 'voice_personality': personality}),
+        )
+        .timeout(_timeout);
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
     }
-    throw Exception('Voice query failed');
+    throw Exception(_extractDetail(response, 'Voice query failed'));
   }
 
   // --- Module 3: Smart Risk Guardian ---
   Future<RiskConfigModel> getRiskConfig(int accountId) async {
-    final response = await http.get(
-      Uri.parse('${AppConfig.baseUrl}${AppConfig.apiPrefix}/risk/config/$accountId'),
-      headers: _headers,
-    );
+    final response = await http
+        .get(
+          Uri.parse(
+              '${AppConfig.baseUrl}${AppConfig.apiPrefix}/risk/config/$accountId'),
+          headers: _headers,
+        )
+        .timeout(_timeout);
     if (response.statusCode == 200) {
       return RiskConfigModel.fromJson(jsonDecode(response.body));
     }
-    throw Exception('Failed to load risk config');
+    throw Exception(_extractDetail(response, 'Failed to load risk config'));
   }
 
-  Future<void> executeEmergencyAction(int accountId, String action, bool confirmCloseAll) async {
-    final response = await http.post(
-      Uri.parse('${AppConfig.baseUrl}${AppConfig.apiPrefix}/risk/emergency-action/$accountId'),
-      headers: _headers,
-      body: jsonEncode({'action': action, 'confirm_close_all': confirmCloseAll}),
-    );
+  Future<void> executeEmergencyAction(
+      int accountId, String action, bool confirmCloseAll) async {
+    final response = await http
+        .post(
+          Uri.parse(
+              '${AppConfig.baseUrl}${AppConfig.apiPrefix}/risk/emergency-action/$accountId'),
+          headers: _headers,
+          body: jsonEncode(
+              {'action': action, 'confirm_close_all': confirmCloseAll}),
+        )
+        .timeout(_timeout);
     if (response.statusCode != 200) {
-      throw Exception('Emergency action failed: ${response.body}');
+      throw Exception(_extractDetail(response, 'Emergency action failed'));
     }
   }
 
   // --- Module 4: Backtesting ---
   Future<Map<String, dynamic>> runBacktest(Map<String, dynamic> params) async {
-    final response = await http.post(
-      Uri.parse('${AppConfig.baseUrl}${AppConfig.apiPrefix}/backtest/run'),
-      headers: _headers,
-      body: jsonEncode(params),
-    );
+    final response = await http
+        .post(
+          Uri.parse('${AppConfig.baseUrl}${AppConfig.apiPrefix}/backtest/run'),
+          headers: _headers,
+          body: jsonEncode(params),
+        )
+        .timeout(const Duration(seconds: 30));
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
     }
-    throw Exception('Backtest execution failed: ${response.body}');
+    throw Exception(_extractDetail(response, 'Backtest execution failed'));
   }
 
-  Future<List<dynamic>> compareStrategies(String symbol, List<String> strategies) async {
-    final response = await http.post(
-      Uri.parse('${AppConfig.baseUrl}${AppConfig.apiPrefix}/backtest/compare'),
-      headers: _headers,
-      body: jsonEncode({'instrument': symbol, 'strategies': strategies}),
-    );
+  Future<List<dynamic>> compareStrategies(
+      String symbol, List<String> strategies) async {
+    final response = await http
+        .post(
+          Uri.parse(
+              '${AppConfig.baseUrl}${AppConfig.apiPrefix}/backtest/compare'),
+          headers: _headers,
+          body: jsonEncode({'instrument': symbol, 'strategies': strategies}),
+        )
+        .timeout(const Duration(seconds: 30));
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
     }
-    throw Exception('Strategy comparison failed');
+    throw Exception(_extractDetail(response, 'Strategy comparison failed'));
   }
 
   // --- Module 5: Accounts & Trading ---
   Future<List<TradingAccountModel>> getAccounts() async {
-    final response = await http.get(
-      Uri.parse('${AppConfig.baseUrl}${AppConfig.apiPrefix}/accounts/'),
-      headers: _headers,
-    );
+    final response = await http
+        .get(
+          Uri.parse('${AppConfig.baseUrl}${AppConfig.apiPrefix}/accounts/'),
+          headers: _headers,
+        )
+        .timeout(_timeout);
     if (response.statusCode == 200) {
       final List list = jsonDecode(response.body);
       return list.map((e) => TradingAccountModel.fromJson(e)).toList();
     }
-    throw Exception('Failed to fetch accounts');
+    throw Exception(_extractDetail(response, 'Failed to fetch accounts'));
   }
 
   Future<void> addAccount(Map<String, dynamic> accountData) async {
-    final response = await http.post(
-      Uri.parse('${AppConfig.baseUrl}${AppConfig.apiPrefix}/accounts/'),
-      headers: _headers,
-      body: jsonEncode(accountData),
-    );
+    final response = await http
+        .post(
+          Uri.parse('${AppConfig.baseUrl}${AppConfig.apiPrefix}/accounts/'),
+          headers: _headers,
+          body: jsonEncode(accountData),
+        )
+        .timeout(_timeout);
     if (response.statusCode != 200) {
-      throw Exception('Failed to add account: ${response.body}');
+      throw Exception(_extractDetail(response, 'Failed to add account'));
     }
   }
 
   // --- Deriv Broker Endpoints ---
   Future<Map<String, dynamic>> verifyDerivToken(String apiToken,
       {String appId = '1089'}) async {
-    final response = await http.post(
-      Uri.parse(
-          '${AppConfig.baseUrl}${AppConfig.apiPrefix}/brokers/deriv/verify-token'),
-      headers: _headers,
-      body: jsonEncode({'api_token': apiToken, 'app_id': appId}),
-    );
+    final response = await http
+        .post(
+          Uri.parse(
+              '${AppConfig.baseUrl}${AppConfig.apiPrefix}/brokers/deriv/verify-token'),
+          headers: _headers,
+          body: jsonEncode({'api_token': apiToken, 'app_id': appId}),
+        )
+        .timeout(const Duration(seconds: 15));
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
     }
-    throw Exception('Deriv verification failed: ${response.body}');
+    throw Exception(_extractDetail(response, 'Deriv verification failed'));
   }
 
   Future<Map<String, dynamic>> syncDerivTicks(
       {List<String>? symbols, String appId = '1089'}) async {
-    final response = await http.post(
-      Uri.parse(
-          '${AppConfig.baseUrl}${AppConfig.apiPrefix}/brokers/deriv/sync-ticks'),
-      headers: _headers,
-      body: jsonEncode({'symbols': symbols, 'app_id': appId}),
-    );
+    final response = await http
+        .post(
+          Uri.parse(
+              '${AppConfig.baseUrl}${AppConfig.apiPrefix}/brokers/deriv/sync-ticks'),
+          headers: _headers,
+          body: jsonEncode({'symbols': symbols, 'app_id': appId}),
+        )
+        .timeout(const Duration(seconds: 20));
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
     }
-    throw Exception('Deriv sync failed: ${response.body}');
+    throw Exception(_extractDetail(response, 'Deriv sync failed'));
+  }
+
+  // --- MetaTrader 4 / 5 Real EA Bridge Status ---
+  Future<Map<String, dynamic>> getBridgeStatus() async {
+    final response = await http
+        .get(
+          Uri.parse('${AppConfig.baseUrl}${AppConfig.apiPrefix}/bridge/status'),
+          headers: _headers,
+        )
+        .timeout(_timeout);
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    }
+    throw Exception(_extractDetail(response, 'Failed to fetch bridge status'));
   }
 
   Future<void> toggleAutoTrading(int accountId, bool enabled) async {
-    final response = await http.put(
-      Uri.parse('${AppConfig.baseUrl}${AppConfig.apiPrefix}/accounts/$accountId/toggle-auto-trading'),
-      headers: _headers,
-      body: jsonEncode({'enabled': enabled}),
-    );
+    final response = await http
+        .put(
+          Uri.parse(
+              '${AppConfig.baseUrl}${AppConfig.apiPrefix}/accounts/$accountId/toggle-auto-trading'),
+          headers: _headers,
+          body: jsonEncode({'enabled': enabled}),
+        )
+        .timeout(_timeout);
     if (response.statusCode != 200) {
-      throw Exception('Failed to toggle auto trading: ${response.body}');
+      throw Exception(_extractDetail(response, 'Failed to toggle auto trading'));
     }
   }
 
   Future<void> authorizeLiveTrading(int accountId, bool authorized) async {
-    final response = await http.put(
-      Uri.parse('${AppConfig.baseUrl}${AppConfig.apiPrefix}/accounts/$accountId/authorize-live'),
-      headers: _headers,
-      body: jsonEncode({'authorized': authorized}),
-    );
+    final response = await http
+        .put(
+          Uri.parse(
+              '${AppConfig.baseUrl}${AppConfig.apiPrefix}/accounts/$accountId/authorize-live'),
+          headers: _headers,
+          body: jsonEncode({'authorized': authorized}),
+        )
+        .timeout(_timeout);
     if (response.statusCode != 200) {
-      throw Exception('Failed to authorize live account: ${response.body}');
+      throw Exception(
+          _extractDetail(response, 'Failed to authorize live account'));
     }
   }
 
   Future<List<PositionModel>> getPositions(int accountId) async {
-    final response = await http.get(
-      Uri.parse('${AppConfig.baseUrl}${AppConfig.apiPrefix}/trading/positions/$accountId'),
-      headers: _headers,
-    );
+    final response = await http
+        .get(
+          Uri.parse(
+              '${AppConfig.baseUrl}${AppConfig.apiPrefix}/trading/positions/$accountId'),
+          headers: _headers,
+        )
+        .timeout(_timeout);
     if (response.statusCode == 200) {
       final List list = jsonDecode(response.body);
       return list.map((e) => PositionModel.fromJson(e)).toList();
     }
-    throw Exception('Failed to load positions');
+    throw Exception(_extractDetail(response, 'Failed to load positions'));
   }
 
-  Future<void> executeTrade(Map<String, dynamic> tradeData) async {
-    final response = await http.post(
-      Uri.parse('${AppConfig.baseUrl}${AppConfig.apiPrefix}/trading/execute'),
-      headers: _headers,
-      body: jsonEncode(tradeData),
-    );
-    if (response.statusCode != 200) {
-      throw Exception('Trade execution failed: ${response.body}');
+  Future<Map<String, dynamic>> executeTrade(
+      Map<String, dynamic> tradeData) async {
+    final response = await http
+        .post(
+          Uri.parse(
+              '${AppConfig.baseUrl}${AppConfig.apiPrefix}/trading/execute'),
+          headers: _headers,
+          body: jsonEncode(tradeData),
+        )
+        .timeout(const Duration(seconds: 20));
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
     }
+    throw Exception(_extractDetail(response, 'Trade execution failed'));
   }
 
   Future<void> closePosition(int positionId) async {
-    final response = await http.post(
-      Uri.parse('${AppConfig.baseUrl}${AppConfig.apiPrefix}/trading/positions/close/$positionId'),
-      headers: _headers,
-    );
+    final response = await http
+        .post(
+          Uri.parse(
+              '${AppConfig.baseUrl}${AppConfig.apiPrefix}/trading/positions/close/$positionId'),
+          headers: _headers,
+        )
+        .timeout(const Duration(seconds: 20));
     if (response.statusCode != 200) {
-      throw Exception('Failed to close position: ${response.body}');
+      throw Exception(_extractDetail(response, 'Failed to close position'));
     }
+  }
+
+  Future<List<dynamic>> getJournalEntries() async {
+    final response = await http
+        .get(
+          Uri.parse('${AppConfig.baseUrl}${AppConfig.apiPrefix}/journal/'),
+          headers: _headers,
+        )
+        .timeout(_timeout);
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    }
+    throw Exception(_extractDetail(response, 'Failed to load trading journal'));
   }
 
   Future<Map<String, dynamic>> checkHealth([String? customUrl]) async {
@@ -258,7 +355,8 @@ class ApiService {
       target = 'http://$target';
     }
     final url = target.endsWith('/') ? '${target}health' : '$target/health';
-    final response = await http.get(Uri.parse(url)).timeout(const Duration(seconds: 5));
+    final response =
+        await http.get(Uri.parse(url)).timeout(const Duration(seconds: 5));
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
     }
@@ -267,5 +365,3 @@ class ApiService {
 }
 
 final apiService = ApiService();
-
-

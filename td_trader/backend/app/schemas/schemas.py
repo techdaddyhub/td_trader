@@ -37,7 +37,7 @@ class TradingAccountCreate(BaseModel):
     server: str
     platform: str # MT4_DEMO, MT4_LIVE, MT5_DEMO, MT5_LIVE, DERIV_API_DEMO, DERIV_API_LIVE, PAPER_TRADING
     currency: str = "USD"
-    password: str # Master/Investor password OR Deriv API token (encrypted immediately upon receipt)
+    password: str = "" # Master/Investor password OR Deriv API token (encrypted immediately upon receipt)
     balance: float = 10000.0
     is_auto_trading_enabled: bool = False
     is_authorized_live: bool = False

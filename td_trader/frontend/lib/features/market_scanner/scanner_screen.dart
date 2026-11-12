@@ -5,7 +5,9 @@ import '../../core/theme/app_theme.dart';
 import '../../core/config/app_config.dart';
 import '../../core/models/models.dart';
 import '../../core/providers/app_state_providers.dart';
+import '../../core/services/api_service.dart';
 import '../../core/widgets/common_widgets.dart';
+import '../settings/settings_screen.dart';
 
 class MarketScannerScreen extends StatefulWidget {
   const MarketScannerScreen({super.key});
@@ -15,12 +17,174 @@ class MarketScannerScreen extends StatefulWidget {
 }
 
 class _MarketScannerScreenState extends State<MarketScannerScreen> {
+  bool _isSyncing = false;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<ScannerProvider>(context, listen: false).fetchOpportunities();
+      if (mounted) {
+        Provider.of<ScannerProvider>(context, listen: false)
+            .fetchOpportunities();
+      }
     });
+  }
+
+  Future<void> _syncAndRescan() async {
+    if (_isSyncing) return;
+    setState(() => _isSyncing = true);
+    final scanner = Provider.of<ScannerProvider>(context, listen: false);
+    try {
+      try {
+        await apiService.syncDerivTicks();
+      } catch (_) {}
+      await apiService.triggerScanNow();
+      await scanner.fetchOpportunities();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+                'Live market sync complete (${scanner.opportunities.length} setups loaded).'),
+            backgroundColor: AppColors.bullishGreen,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content:
+                Text('Sync error: ${e.toString().replaceAll("Exception: ", "")}'),
+            backgroundColor: AppColors.bearishRed,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isSyncing = false);
+    }
+  }
+
+  Future<void> _confirmAndTradeSetup(SignalModel opp) async {
+    final accountProvider =
+        Provider.of<AccountProvider>(context, listen: false);
+    final account = accountProvider.activeAccount;
+    if (account == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+              'No active account selected. Go to Trading or Account Manager to connect an account first.'),
+          backgroundColor: AppColors.warningAmber,
+        ),
+      );
+      return;
+    }
+
+    final lotsController = TextEditingController(text: '0.10');
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        title: Row(
+          children: [
+            Icon(
+              opp.direction == 'BUY'
+                  ? Icons.trending_up
+                  : Icons.trending_down,
+              color: opp.direction == 'BUY'
+                  ? AppColors.bullishGreen
+                  : AppColors.bearishRed,
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'Execute ${opp.direction} ${opp.instrument}',
+                style: const TextStyle(fontSize: 16),
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Account: ${account.brokerName} (${account.accountNumber}) [${account.platform}]',
+              style: const TextStyle(
+                  color: AppColors.binanceGold,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 10),
+            _buildMetricRow('Entry Price', opp.entryPrice.toString()),
+            _buildMetricRow('Stop Loss', opp.stopLoss.toString()),
+            _buildMetricRow('Take Profit', opp.takeProfit1.toString()),
+            _buildMetricRow('AI Score', '${opp.score.toInt()}/100'),
+            const SizedBox(height: 12),
+            TextField(
+              controller: lotsController,
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
+              decoration: const InputDecoration(
+                labelText: 'Lot Size / Volume',
+                isDense: true,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('CANCEL'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: opp.direction == 'BUY'
+                  ? AppColors.bullishGreen
+                  : AppColors.bearishRed,
+              foregroundColor: Colors.black,
+            ),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text('CONFIRM ${opp.direction}'),
+          ),
+        ],
+      ),
+    );
+
+    final parsedLots = double.tryParse(lotsController.text.trim()) ?? 0.10;
+    lotsController.dispose();
+    if (confirmed != true || !mounted) return;
+
+    try {
+      await apiService.executeTrade({
+        'account_id': account.id,
+        'instrument': opp.instrument,
+        'direction': opp.direction,
+        'lots': parsedLots > 0 ? parsedLots : 0.10,
+        'stop_loss': opp.stopLoss,
+        'take_profit': opp.takeProfit1,
+        'order_type': opp.direction,
+      });
+      await accountProvider.loadAccounts();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+                '${opp.direction} ${opp.instrument} sent to ${account.platform} (${account.accountNumber})!'),
+            backgroundColor: AppColors.bullishGreen,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+                'Execution blocked: ${e.toString().replaceAll("Exception: ", "")}'),
+            backgroundColor: AppColors.bearishRed,
+          ),
+        );
+      }
+    }
   }
 
   void _showScoreBreakdownDialog(BuildContext context, SignalModel signal) {
@@ -102,6 +266,25 @@ class _MarketScannerScreenState extends State<MarketScannerScreen> {
       appBar: AppBar(
         title: const Text('AI MULTI-MARKET SCANNER'),
         actions: [
+          TextButton.icon(
+            onPressed: _isSyncing ? null : _syncAndRescan,
+            icon: _isSyncing
+                ? const SizedBox(
+                    width: 14,
+                    height: 14,
+                    child: CircularProgressIndicator(
+                        strokeWidth: 2, color: AppColors.binanceGold),
+                  )
+                : const Icon(Icons.sync,
+                    size: 16, color: AppColors.binanceGold),
+            label: Text(
+              _isSyncing ? 'SYNCING' : 'LIVE SYNC',
+              style: const TextStyle(
+                  color: AppColors.binanceGold,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 11),
+            ),
+          ),
           IconButton(
             icon: const Icon(Icons.refresh, color: AppColors.primaryCyan),
             onPressed: () => scanner.fetchOpportunities(),
@@ -184,6 +367,49 @@ class _MarketScannerScreenState extends State<MarketScannerScreen> {
               ],
             ),
           ),
+
+          if (scanner.errorMessage != null)
+            Container(
+              width: double.infinity,
+              margin: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: AppColors.bearishRed.withValues(alpha: 0.14),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                    color: AppColors.bearishRed.withValues(alpha: 0.45)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.cloud_off,
+                      color: AppColors.bearishRed, size: 18),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'PC Server Unreachable: ${scanner.errorMessage}',
+                      style: const TextStyle(
+                          color: Colors.white, fontSize: 11),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) => const SettingsScreen()),
+                      );
+                    },
+                    child: const Text('CONNECT PC',
+                        style: TextStyle(
+                            color: AppColors.binanceGold,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 11)),
+                  ),
+                ],
+              ),
+            ),
 
           // Opportunities Live Feed
           Expanded(
@@ -334,6 +560,38 @@ class _MarketScannerScreenState extends State<MarketScannerScreen> {
                                         ],
                                       ),
                                     ),
+                                  const SizedBox(height: 12),
+                                  SizedBox(
+                                    width: double.infinity,
+                                    child: ElevatedButton.icon(
+                                      onPressed: () =>
+                                          _confirmAndTradeSetup(opp),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: isBuy
+                                            ? AppColors.bullishGreen
+                                                .withValues(alpha: 0.18)
+                                            : AppColors.bearishRed
+                                                .withValues(alpha: 0.18),
+                                        foregroundColor: isBuy
+                                            ? AppColors.bullishGreen
+                                            : AppColors.bearishRed,
+                                        side: BorderSide(
+                                          color: isBuy
+                                              ? AppColors.bullishGreen
+                                              : AppColors.bearishRed,
+                                        ),
+                                        padding: const EdgeInsets.symmetric(
+                                            vertical: 10),
+                                      ),
+                                      icon: const Icon(Icons.bolt, size: 16),
+                                      label: Text(
+                                        'TRADE SETUP (${opp.direction} ${opp.instrument})',
+                                        style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 12),
+                                      ),
+                                    ),
+                                  ),
                                 ],
                               ),
                             ),

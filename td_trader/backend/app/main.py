@@ -22,6 +22,7 @@ from td_trader.backend.app.api.endpoints import (
     list_trading_accounts, create_trading_account, toggle_auto_trading, authorize_live_account,
     get_portfolio_summary_handler, submit_order_handler, get_positions_handler, close_position_handler,
     verify_deriv_token_handler, list_deriv_instruments_handler, sync_deriv_market_data_handler,
+    mt_bridge_heartbeat_handler, mt_bridge_confirm_handler, mt_bridge_status_handler,
     list_journal_entries, websocket_endpoint
 )
 
@@ -95,6 +96,11 @@ routes = [
     Route(f"{settings.API_PREFIX}/brokers/deriv/verify-token", verify_deriv_token_handler, methods=["POST"]),
     Route(f"{settings.API_PREFIX}/brokers/deriv/instruments", list_deriv_instruments_handler, methods=["GET"]),
     Route(f"{settings.API_PREFIX}/brokers/deriv/sync-ticks", sync_deriv_market_data_handler, methods=["POST"]),
+
+    # MetaTrader 4/5 Real EA Bridge Integration
+    Route(f"{settings.API_PREFIX}/bridge/mt/heartbeat", mt_bridge_heartbeat_handler, methods=["POST"]),
+    Route(f"{settings.API_PREFIX}/bridge/mt/confirm", mt_bridge_confirm_handler, methods=["POST"]),
+    Route(f"{settings.API_PREFIX}/bridge/status", mt_bridge_status_handler, methods=["GET"]),
 
     # WebSocket Real-Time Event Bus
     WebSocketRoute("/ws", websocket_endpoint)

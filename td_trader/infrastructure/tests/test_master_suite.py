@@ -349,6 +349,167 @@ class MasterTDTraderTestSuite(unittest.TestCase):
         self.assertEqual(bt_res.instrument, "V75")
         self.assertIsNotNone(bt_res.win_rate)
 
+    def test_08_real_mt_ea_bridge(self):
+        """Verify honest MT5/MT4 offline rejection, live EA heartbeat sync, and WebRequest order confirmation."""
+        import asyncio
+        import uuid
+        import httpx
+        from td_trader.backend.app.models.entities import Position
+        from td_trader.metatrader_bridge.connectors.bridge_connector import bridge_connector
+
+        mt_acct_num = f"5099{uuid.uuid4().hex[:6].upper()}"
+        real_ticket = f"99{uuid.uuid4().int % 900000 + 100000}"
+
+        async def _run_bridge_flow():
+            transport = httpx.ASGITransport(app=app)
+            async with httpx.AsyncClient(transport=transport, base_url="http://testserver") as ac:
+                acct_res = await ac.post("/api/v1/accounts/", json={
+                    "account_number": mt_acct_num,
+                    "broker_name": "MetaQuotes Demo",
+                    "server": "MetaQuotes-Demo",
+                    "platform": "MT5_DEMO",
+                    "password": "Mt5BridgeTestPass!",
+                    "currency": "USD",
+                    "balance": 10000.0,
+                    "is_auto_trading_enabled": True,
+                    "is_authorized_live": False,
+                })
+                self.assertEqual(acct_res.status_code, 200, acct_res.text)
+                acct_id = acct_res.json()["id"]
+
+                # 1. Attempting MT5 trade while EA has NOT checked in MUST fail honestly
+                offline_exec = await ac.post("/api/v1/trading/execute", json={
+                    "account_id": acct_id,
+                    "instrument": "XAUUSD",
+                    "direction": "BUY",
+                    "lots": 0.10,
+                    "stop_loss": 2730.0,
+                    "take_profit": 2770.0,
+                })
+                self.assertEqual(offline_exec.status_code, 400, offline_exec.text)
+                self.assertIn("offline", offline_exec.json()["detail"].lower())
+
+                # 2. EA sends live heartbeat -> telemetry synced & bridge status shows terminal online
+                hb_res = await ac.post("/api/v1/bridge/mt/heartbeat", json={
+                    "account": mt_acct_num,
+                    "platform": "MT5",
+                    "broker": "MetaQuotes Software Corp.",
+                    "server": "MetaQuotes-Demo",
+                    "balance": 25432.50,
+                    "equity": 25510.75,
+                    "free_margin": 25000.0,
+                    "margin": 510.75,
+                    "profit": 78.25,
+                    "positions": 0,
+                })
+                self.assertEqual(hb_res.status_code, 200, hb_res.text)
+                self.assertEqual(hb_res.json()["commands"], [])
+
+                status_res = await ac.get("/api/v1/bridge/status")
+                self.assertEqual(status_res.status_code, 200)
+                terminals = status_res.json()["terminals"]
+                self.assertTrue(
+                    any(t["account_number"] == mt_acct_num and t["status"] == "ONLINE" for t in terminals)
+                )
+
+                db = SessionLocal()
+                try:
+                    synced_acct = db.query(TradingAccount).filter(TradingAccount.id == acct_id).first()
+                    self.assertAlmostEqual(synced_acct.balance, 25432.50, places=2)
+                    self.assertAlmostEqual(synced_acct.equity, 25510.75, places=2)
+                finally:
+                    db.close()
+
+                # 3. Online trade dispatch -> queued for EA -> EA confirms broker ticket
+                exec_task = asyncio.create_task(ac.post("/api/v1/trading/execute", json={
+                    "account_id": acct_id,
+                    "instrument": "XAUUSD",
+                    "direction": "BUY",
+                    "lots": 0.10,
+                    "stop_loss": 2730.0,
+                    "take_profit": 2770.0,
+                }))
+
+                dispatched_cmd = None
+                for _ in range(40):
+                    await asyncio.sleep(0.02)
+                    poll_resp = await ac.post("/api/v1/bridge/mt/heartbeat", json={
+                        "account": mt_acct_num,
+                        "platform": "MT5",
+                        "balance": 25432.50,
+                        "equity": 25510.75,
+                    })
+                    poll = poll_resp.json()
+                    if poll["commands"]:
+                        dispatched_cmd = poll["commands"][0]
+                        break
+
+                self.assertIsNotNone(dispatched_cmd, "Expected OPEN_ORDER command to be queued for MT5 EA")
+                self.assertEqual(dispatched_cmd["action"], "OPEN_ORDER")
+                self.assertEqual(dispatched_cmd["instrument"], "XAUUSD")
+
+                confirm_res = await ac.post("/api/v1/bridge/mt/confirm", json={
+                    "client_order_id": dispatched_cmd["client_order_id"],
+                    "confirmed": True,
+                    "broker_ticket": real_ticket,
+                    "fill_price": 2742.85,
+                    "lots_filled": 0.10,
+                    "slippage_pips": 0.2,
+                })
+                self.assertEqual(confirm_res.status_code, 200)
+                self.assertTrue(confirm_res.json()["matched"])
+
+                exec_res = await exec_task
+                self.assertEqual(exec_res.status_code, 200, exec_res.text)
+                edata = exec_res.json()
+                self.assertEqual(edata["status"], "CONFIRMED_BY_BROKER")
+                self.assertEqual(edata["ticket"], real_ticket)
+
+                # 4. Close position -> queued CLOSE_POSITION for EA -> EA confirms
+                db = SessionLocal()
+                try:
+                    pos = db.query(Position).filter(Position.position_ticket == real_ticket).first()
+                    self.assertIsNotNone(pos)
+                    pos_id = pos.id
+                finally:
+                    db.close()
+
+                close_task = asyncio.create_task(ac.post(f"/api/v1/trading/positions/close/{pos_id}"))
+
+                close_cmd = None
+                for _ in range(40):
+                    await asyncio.sleep(0.02)
+                    poll_resp = await ac.post("/api/v1/bridge/mt/heartbeat", json={
+                        "account": mt_acct_num,
+                        "platform": "MT5",
+                        "balance": 25432.50,
+                        "equity": 25510.75,
+                    })
+                    poll = poll_resp.json()
+                    if poll["commands"]:
+                        close_cmd = poll["commands"][0]
+                        break
+
+                self.assertIsNotNone(close_cmd, "Expected CLOSE_POSITION command for MT5 EA")
+                self.assertEqual(close_cmd["action"], "CLOSE_POSITION")
+                self.assertEqual(close_cmd["broker_ticket"], real_ticket)
+
+                confirm_close = await ac.post("/api/v1/bridge/mt/confirm", json={
+                    "client_order_id": close_cmd["client_order_id"],
+                    "confirmed": True,
+                    "broker_ticket": real_ticket,
+                })
+                self.assertEqual(confirm_close.status_code, 200)
+                self.assertTrue(confirm_close.json()["matched"])
+
+                close_res = await close_task
+                self.assertEqual(close_res.status_code, 200, close_res.text)
+
+        try:
+            asyncio.run(_run_bridge_flow())
+        finally:
+            bridge_connector.connected_terminals.pop(mt_acct_num, None)
+
 if __name__ == "__main__":
     unittest.main()
 

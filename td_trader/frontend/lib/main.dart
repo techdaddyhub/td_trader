@@ -6,8 +6,9 @@ import 'core/config/app_config.dart';
 import 'core/providers/app_state_providers.dart';
 import 'features/dashboard/main_navigation_screen.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await AppConfig.loadSavedBaseUrl();
   runApp(
     MultiProvider(
       providers: [

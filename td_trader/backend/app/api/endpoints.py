@@ -28,6 +28,7 @@ from td_trader.backtesting.walk_forward.walk_forward import WalkForwardAnalyzer
 from td_trader.ai_engine.strategy_engine.strategies import STRATEGY_REGISTRY
 from td_trader.metatrader_bridge.account_sync.sync_service import account_sync_service
 from td_trader.metatrader_bridge.execution.execution_service import order_execution_service
+from td_trader.metatrader_bridge.connectors.bridge_connector import bridge_connector
 from td_trader.backend.app.services.paper_trading_service import paper_trading_engine
 from td_trader.backend.app.services.deriv_connector import deriv_connector
 from td_trader.backend.app.schemas.schemas import (
@@ -450,8 +451,10 @@ async def get_positions_handler(request: Request):
     account_id = int(request.path_params["account_id"])
     db = SessionLocal()
     try:
-        # Update mark-to-market prices
-        paper_trading_engine.update_positions_mark_to_market(db, account_id)
+        acct = db.query(TradingAccount).filter(TradingAccount.id == account_id).first()
+        if acct and acct.platform == "PAPER_TRADING":
+            # Update simulated mark-to-market prices only on paper accounts
+            paper_trading_engine.update_positions_mark_to_market(db, account_id)
         positions = db.query(Position).filter(Position.account_id == account_id, Position.status == "OPEN").all()
         res = []
         for p in positions:
@@ -479,18 +482,49 @@ async def close_position_handler(request: Request):
         pos = db.query(Position).filter(Position.id == pos_id).first()
         if not pos:
             return JSONResponse({"detail": "Position not found"}, status_code=404)
-        if pos.position_ticket.startswith("DERIV_"):
-            acct = db.query(TradingAccount).filter(TradingAccount.id == pos.account_id).first()
-            if acct and acct.platform.startswith("DERIV_API"):
-                try:
-                    await deriv_connector.close_contract_async(acct, pos.position_ticket)
-                except Exception as exc:
-                    return JSONResponse({"detail": f"Deriv close failed: {exc}"}, status_code=400)
+        acct = db.query(TradingAccount).filter(TradingAccount.id == pos.account_id).first()
+        if pos.position_ticket.startswith("DERIV_") and acct and acct.platform.startswith("DERIV_API"):
+            try:
+                await deriv_connector.close_contract_async(acct, pos.position_ticket)
+            except Exception as exc:
+                return JSONResponse({"detail": f"Deriv close failed: {exc}"}, status_code=400)
+        elif acct and acct.platform.startswith(("MT4", "MT5")):
+            receipt = await bridge_connector.close_terminal_position_async(acct, pos.position_ticket)
+            if not receipt.get("confirmed", False):
+                return JSONResponse(
+                    {"detail": receipt.get("error", "MT4/MT5 close rejected by terminal")},
+                    status_code=400,
+                )
         res = paper_trading_engine.close_paper_position(db, pos, "MANUAL_USER_CLOSE")
         await ws_manager.broadcast_event("POSITION_CLOSED", res)
         return JSONResponse(res)
     finally:
         db.close()
+
+
+# --- MetaTrader 4/5 Real EA Bridge Endpoints ---
+async def mt_bridge_heartbeat_handler(request: Request):
+    data = await request.json()
+    db = SessionLocal()
+    try:
+        commands = bridge_connector.record_heartbeat(db, data)
+        return JSONResponse({
+            "status": "OK",
+            "commands": commands,
+            "timestamp": datetime.utcnow().isoformat(),
+        })
+    finally:
+        db.close()
+
+
+async def mt_bridge_confirm_handler(request: Request):
+    data = await request.json()
+    matched = bridge_connector.record_order_confirmation(data)
+    return JSONResponse({"status": "OK", "matched": matched})
+
+
+async def mt_bridge_status_handler(request: Request):
+    return JSONResponse(bridge_connector.get_bridge_status())
 
 
 # --- Deriv Broker Native API Endpoints ---

@@ -1,7 +1,6 @@
 // TD TRADER - Reusable Quantitative Fintech Widgets
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
-import '../models/models.dart';
 
 class ScoreBadge extends StatelessWidget {
   final double score;

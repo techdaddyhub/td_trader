@@ -190,13 +190,12 @@ class OrderExecutionService:
                 signal_id=req.signal_id,
             )
 
-        if account.platform.startswith("DERIV_API"):
-            raise RuntimeError("Deriv Native API orders must be executed via execute_order_async.")
+        if account.platform.startswith("DERIV_API") or account.platform.startswith(("MT4", "MT5")):
+            raise RuntimeError("Live/Demo broker orders must be executed via execute_order_async.")
 
         order_payload = OrderExecutionService._build_order_payload(client_oid, req, lots, entry_price)
-        broker_receipt = bridge_connector.dispatch_order_to_terminal(account, order_payload)
         return OrderExecutionService._record_confirmed_broker_order(
-            db_session, account, req, client_oid, entry_price, lots, broker_receipt
+            db_session, account, req, client_oid, entry_price, lots, {"confirmed": False, "error": "Unsupported sync platform"}
         )
 
     @staticmethod
@@ -221,7 +220,7 @@ class OrderExecutionService:
         if account.platform.startswith("DERIV_API"):
             broker_receipt = await deriv_connector.dispatch_deriv_order_async(account, order_payload)
         else:
-            broker_receipt = bridge_connector.dispatch_order_to_terminal(account, order_payload)
+            broker_receipt = await bridge_connector.dispatch_order_to_terminal_async(account, order_payload)
 
         return OrderExecutionService._record_confirmed_broker_order(
             db_session, account, req, client_oid, entry_price, lots, broker_receipt

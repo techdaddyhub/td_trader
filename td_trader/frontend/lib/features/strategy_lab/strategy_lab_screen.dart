@@ -1,7 +1,6 @@
 // TD TRADER - AI Strategy Management & Custom Builder Screen
 import 'package:flutter/material.dart';
 import '../../core/theme/app_theme.dart';
-import '../../core/services/api_service.dart';
 
 class StrategyLabScreen extends StatefulWidget {
   const StrategyLabScreen({super.key});

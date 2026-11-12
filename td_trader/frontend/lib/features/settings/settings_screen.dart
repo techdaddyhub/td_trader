@@ -53,17 +53,32 @@ class _SettingsScreenState extends State<SettingsScreen> {
       final res = await apiService.checkHealth(inputUrl);
       stopwatch.stop();
 
-      AppConfig.setBaseUrl(inputUrl);
+      await AppConfig.setBaseUrl(inputUrl);
 
+      if (!mounted) return;
+      final accountProvider =
+          Provider.of<AccountProvider>(context, listen: false);
+      final scannerProvider =
+          Provider.of<ScannerProvider>(context, listen: false);
+
+      await Future.wait([
+        accountProvider.loadAccounts(),
+        scannerProvider.fetchOpportunities(),
+      ]);
+
+      if (!mounted) return;
+      final bridgeCount = accountProvider.onlineBridgeCount;
       setState(() {
         _isTesting = false;
         _isSuccess = true;
         _testResult =
             'Connected to PC Server! Latency: ${stopwatch.elapsedMilliseconds}ms\n'
-            'Owner: ${res['owner'] ?? 'TechDaddy'} | Version: ${res['version'] ?? '2.0.0'}';
+            'Owner: ${res['owner'] ?? 'TechDaddy'} | Version: ${res['version'] ?? '2.0.0'}\n'
+            'MT4/MT5 EA Terminals Online: $bridgeCount | Accounts Loaded: ${accountProvider.accounts.length}';
       });
     } catch (e) {
       stopwatch.stop();
+      if (!mounted) return;
       setState(() {
         _isTesting = false;
         _isSuccess = false;

@@ -138,8 +138,13 @@ jobs:
 
       - name: Install Linux Build Dependencies
         run: |
-          sudo apt-get -o Acquire::ForceIPv4=true -o Acquire::http::Timeout=20 -o Acquire::Retries=3 update
-          sudo apt-get -o Acquire::ForceIPv4=true -o Acquire::http::Timeout=20 -o Acquire::Retries=3 install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev
+          if command -v ninja >/dev/null && command -v clang++ >/dev/null && pkg-config --exists gtk+-3.0; then
+            echo "Linux desktop build dependencies already present."
+          else
+            sudo sed -i 's|http://azure\.archive\.ubuntu\.com/ubuntu|http://archive.ubuntu.com/ubuntu|g' /etc/apt/sources.list /etc/apt/sources.list.d/*.list /etc/apt/sources.list.d/*.sources 2>/dev/null || true
+            sudo apt-get -o Acquire::ForceIPv4=true -o Acquire::http::Timeout=20 -o Acquire::Retries=3 update
+            sudo apt-get -o Acquire::ForceIPv4=true -o Acquire::http::Timeout=20 -o Acquire::Retries=3 install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev
+          fi
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2

@@ -6,18 +6,21 @@ import '../services/api_service.dart';
 class ScannerProvider extends ChangeNotifier {
   List<SignalModel> _opportunities = [];
   bool _isLoading = false;
+  String? _errorMessage;
   String _selectedCategory = 'ALL';
   String _selectedTimeframe = 'H1';
   double _minScore = 60.0;
 
   List<SignalModel> get opportunities => _opportunities;
   bool get isLoading => _isLoading;
+  String? get errorMessage => _errorMessage;
   String get selectedCategory => _selectedCategory;
   String get selectedTimeframe => _selectedTimeframe;
   double get minScore => _minScore;
 
   Future<void> fetchOpportunities() async {
     _isLoading = true;
+    _errorMessage = null;
     notifyListeners();
     try {
       _opportunities = await apiService.getOpportunities(
@@ -26,6 +29,7 @@ class ScannerProvider extends ChangeNotifier {
         minScore: _minScore,
       );
     } catch (e) {
+      _errorMessage = e.toString().replaceAll('Exception: ', '');
       debugPrint('Error fetching opportunities: $e');
     } finally {
       _isLoading = false;
@@ -58,7 +62,8 @@ class VoiceProvider extends ChangeNotifier {
   final List<Map<String, String>> _messages = [
     {
       'role': 'assistant',
-      'text': 'Hello Trader. I am your TD AI Voice analyst. Ask me about any market setup, risk status, or trade rationale.'
+      'text':
+          'Hello Trader. I am your TD AI Voice analyst. Ask me about any market setup, Deriv V75, risk status, or trade rationale.'
     }
   ];
 
@@ -100,10 +105,12 @@ class VoiceProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final res = await apiService.sendVoiceQuery(question, _selectedPersonality);
+      final res =
+          await apiService.sendVoiceQuery(question, _selectedPersonality);
       _messages.add({'role': 'assistant', 'text': res['response_text']});
     } catch (e) {
-      _messages.add({'role': 'assistant', 'text': 'Unable to connect to Voice Engine: $e'});
+      _messages.add(
+          {'role': 'assistant', 'text': 'Unable to connect to Voice Engine: $e'});
     } finally {
       _isSpeaking = false;
       notifyListeners();
@@ -131,9 +138,11 @@ class RiskProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> triggerEmergency(int accountId, String action, bool confirmCloseAll) async {
+  Future<void> triggerEmergency(
+      int accountId, String action, bool confirmCloseAll) async {
     try {
-      await apiService.executeEmergencyAction(accountId, action, confirmCloseAll);
+      await apiService.executeEmergencyAction(
+          accountId, action, confirmCloseAll);
       await fetchConfig(accountId);
     } catch (e) {
       rethrow;
@@ -146,24 +155,47 @@ class AccountProvider extends ChangeNotifier {
   TradingAccountModel? _activeAccount;
   List<PositionModel> _positions = [];
   bool _isLoading = false;
+  bool _isServerOnline = false;
+  int _onlineBridgeCount = 0;
+  String? _errorMessage;
 
   List<TradingAccountModel> get accounts => _accounts;
   TradingAccountModel? get activeAccount => _activeAccount;
   List<PositionModel> get positions => _positions;
   bool get isLoading => _isLoading;
+  bool get isServerOnline => _isServerOnline;
+  int get onlineBridgeCount => _onlineBridgeCount;
+  String? get errorMessage => _errorMessage;
 
   Future<void> loadAccounts() async {
     _isLoading = true;
+    _errorMessage = null;
     notifyListeners();
     try {
       _accounts = await apiService.getAccounts();
-      if (_accounts.isNotEmpty && _activeAccount == null) {
-        _activeAccount = _accounts.first;
+      _isServerOnline = true;
+      if (_accounts.isNotEmpty) {
+        if (_activeAccount == null) {
+          _activeAccount = _accounts.first;
+        } else {
+          final match = _accounts.where((a) => a.id == _activeAccount!.id);
+          _activeAccount = match.isNotEmpty ? match.first : _accounts.first;
+        }
+      } else {
+        _activeAccount = null;
       }
       if (_activeAccount != null) {
         await loadPositions(_activeAccount!.id);
+      } else {
+        _positions = [];
       }
+      try {
+        final bridge = await apiService.getBridgeStatus();
+        _onlineBridgeCount = (bridge['online_count'] as num?)?.toInt() ?? 0;
+      } catch (_) {}
     } catch (e) {
+      _isServerOnline = false;
+      _errorMessage = e.toString().replaceAll('Exception: ', '');
       debugPrint('Error loading accounts: $e');
     } finally {
       _isLoading = false;
@@ -201,8 +233,7 @@ class AccountProvider extends ChangeNotifier {
   Future<void> closePosition(int positionId) async {
     await apiService.closePosition(positionId);
     if (_activeAccount != null) {
-      await loadPositions(_activeAccount!.id);
+      await loadAccounts();
     }
   }
 }
-

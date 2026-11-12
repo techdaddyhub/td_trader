@@ -5,6 +5,7 @@ import '../../core/theme/app_theme.dart';
 import '../../core/providers/app_state_providers.dart';
 import '../../core/services/api_service.dart';
 import '../../core/widgets/connect_account_dialog.dart';
+import '../settings/settings_screen.dart';
 
 class TradingTerminalScreen extends StatefulWidget {
   const TradingTerminalScreen({super.key});
@@ -141,6 +142,7 @@ class _TradingTerminalScreenState extends State<TradingTerminalScreen> {
         'server': 'TD-Paper-Server',
         'platform': 'PAPER_TRADING',
         'currency': 'USD',
+        'password': 'PAPER_SIMULATOR',
         'balance': 10000.0,
         'is_auto_trading_enabled': true,
         'is_authorized_live': false,
@@ -167,6 +169,31 @@ class _TradingTerminalScreenState extends State<TradingTerminalScreen> {
     }
   }
 
+  Future<void> _closeOpenPosition(int positionId, String instrument) async {
+    try {
+      await Provider.of<AccountProvider>(context, listen: false)
+          .closePosition(positionId);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Closed $instrument position (#$positionId).'),
+            backgroundColor: AppColors.bullishGreen,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+                'Close failed: ${e.toString().replaceAll("Exception: ", "")}'),
+            backgroundColor: AppColors.bearishRed,
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final accountProvider = Provider.of<AccountProvider>(context);
@@ -188,6 +215,48 @@ class _TradingTerminalScreenState extends State<TradingTerminalScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          if (accountProvider.errorMessage != null)
+            Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.bearishRed.withValues(alpha: 0.14),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                    color: AppColors.bearishRed.withValues(alpha: 0.45)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.cloud_off,
+                      color: AppColors.bearishRed, size: 20),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'PC Server Offline: ${accountProvider.errorMessage}',
+                      style:
+                          const TextStyle(color: Colors.white, fontSize: 12),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) => const SettingsScreen()),
+                      );
+                    },
+                    child: const Text('CONNECT PC',
+                        style: TextStyle(
+                            color: AppColors.binanceGold,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 11)),
+                  ),
+                ],
+              ),
+            ),
+
           // 1. ACTIVE ACCOUNT SELECTOR & BROKER STATUS BAR
           if (activeAcct != null) ...[
             Card(
@@ -570,15 +639,35 @@ class _TradingTerminalScreenState extends State<TradingTerminalScreen> {
                         style: const TextStyle(fontWeight: FontWeight.bold)),
                     subtitle: Text(
                         'Entry: ${pos.openPrice} | SL: ${pos.stopLoss} | TP: ${pos.takeProfit}'),
-                    trailing: Text(
-                      '${pos.floatingPnl >= 0 ? "+" : ""}\$${pos.floatingPnl.toStringAsFixed(2)}',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 15,
-                        color: pos.floatingPnl >= 0
-                            ? AppColors.bullishGreen
-                            : AppColors.bearishRed,
-                      ),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          '${pos.floatingPnl >= 0 ? "+" : ""}\$${pos.floatingPnl.toStringAsFixed(2)}',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                            color: pos.floatingPnl >= 0
+                                ? AppColors.bullishGreen
+                                : AppColors.bearishRed,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        OutlinedButton(
+                          onPressed: () =>
+                              _closeOpenPosition(pos.id, pos.instrument),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: AppColors.bearishRed,
+                            side: const BorderSide(color: AppColors.bearishRed),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 4),
+                            minimumSize: const Size(0, 28),
+                          ),
+                          child: const Text('CLOSE',
+                              style: TextStyle(
+                                  fontSize: 10, fontWeight: FontWeight.bold)),
+                        ),
+                      ],
                     ),
                   ),
                 )),

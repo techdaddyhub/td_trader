@@ -1,9 +1,7 @@
 // TD TRADER - AI Trading Journal Screen
 import 'package:flutter/material.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 import '../../core/theme/app_theme.dart';
-import '../../core/config/app_config.dart';
+import '../../core/services/api_service.dart';
 
 class TradingJournalScreen extends StatefulWidget {
   const TradingJournalScreen({super.key});
@@ -15,6 +13,7 @@ class TradingJournalScreen extends StatefulWidget {
 class _TradingJournalScreenState extends State<TradingJournalScreen> {
   List<dynamic> _entries = [];
   bool _isLoading = false;
+  String? _errorMessage;
 
   @override
   void initState() {
@@ -23,17 +22,22 @@ class _TradingJournalScreenState extends State<TradingJournalScreen> {
   }
 
   Future<void> _fetchJournalEntries() async {
-    setState(() => _isLoading = true);
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
     try {
-      final res = await http.get(
-          Uri.parse('${AppConfig.baseUrl}${AppConfig.apiPrefix}/journal/'));
-      if (res.statusCode == 200) {
-        setState(() {
-          _entries = jsonDecode(res.body);
-        });
-      }
+      final entries = await apiService.getJournalEntries();
+      if (!mounted) return;
+      setState(() {
+        _entries = entries;
+      });
     } catch (e) {
       debugPrint('Error loading journal: $e');
+      if (!mounted) return;
+      setState(() {
+        _errorMessage = e.toString().replaceAll('Exception: ', '');
+      });
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -54,7 +58,31 @@ class _TradingJournalScreenState extends State<TradingJournalScreen> {
       body: _isLoading
           ? const Center(
               child: CircularProgressIndicator(color: AppColors.primaryCyan))
-          : _entries.isEmpty
+          : _errorMessage != null
+              ? Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.cloud_off,
+                            color: AppColors.bearishRed, size: 36),
+                        const SizedBox(height: 12),
+                        Text(
+                          'Unable to load journal: $_errorMessage',
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                        const SizedBox(height: 12),
+                        ElevatedButton(
+                          onPressed: _fetchJournalEntries,
+                          child: const Text('RETRY'),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              : _entries.isEmpty
               ? const Center(
                   child: Padding(
                     padding: EdgeInsets.all(32),

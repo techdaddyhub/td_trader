@@ -1,7 +1,9 @@
 // Copyright (c) 2026 TechDaddy. All rights reserved.
 // TD TRADER - Main Adaptive Navigation Shell with Navigation Drawer
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/providers/app_state_providers.dart';
 import '../../core/widgets/techdaddy_logo.dart';
 import '../market_scanner/scanner_screen.dart';
 import '../voice_assistant/voice_assistant_screen.dart';
@@ -33,7 +35,26 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        Provider.of<AccountProvider>(context, listen: false).loadAccounts();
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final accountProvider = context.watch<AccountProvider>();
+    final isOnline = accountProvider.isServerOnline;
+    final bridgeCount = accountProvider.onlineBridgeCount;
+    final badgeColor =
+        isOnline ? AppColors.bullishGreen : AppColors.binanceGold;
+    final badgeText = isOnline
+        ? (bridgeCount > 0 ? 'PC ONLINE ($bridgeCount EA)' : 'PC ONLINE')
+        : 'CONNECT PC';
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: AppColors.surface,
@@ -86,20 +107,20 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                 decoration: BoxDecoration(
                   color: AppColors.surfaceLight,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                      color: AppColors.binanceGold.withValues(alpha: 0.4)),
+                  border: Border.all(color: badgeColor.withValues(alpha: 0.5)),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
-                  children: const [
-                    Icon(Icons.wifi, size: 14, color: AppColors.binanceGold),
-                    SizedBox(width: 5),
+                  children: [
+                    Icon(isOnline ? Icons.cloud_done : Icons.wifi,
+                        size: 14, color: badgeColor),
+                    const SizedBox(width: 5),
                     Text(
-                      'CONNECT PC',
+                      badgeText,
                       style: TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.bold,
-                        color: AppColors.binanceGold,
+                        color: badgeColor,
                         letterSpacing: 0.5,
                       ),
                     ),

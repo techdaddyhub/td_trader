@@ -30,6 +30,27 @@ def apply_android(root: str = "."):
         with open(manifest, "r", encoding="utf-8") as f:
             xml = f.read()
         xml = xml.replace('android:label="td_trader"', 'android:label="TD TRADER"')
+        if "android.permission.INTERNET" not in xml:
+            xml = xml.replace(
+                "<application",
+                '    <uses-permission android:name="android.permission.INTERNET"/>\n'
+                '    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>\n'
+                "    <application",
+                1,
+            )
+        elif "android.permission.ACCESS_NETWORK_STATE" not in xml:
+            xml = xml.replace(
+                "<application",
+                '    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>\n'
+                "    <application",
+                1,
+            )
+        if "android:usesCleartextTraffic" not in xml:
+            xml = xml.replace(
+                "<application",
+                '<application\n        android:usesCleartextTraffic="true"',
+                1,
+            )
         with open(manifest, "w", encoding="utf-8") as f:
             f.write(xml)
 

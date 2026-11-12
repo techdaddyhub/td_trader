@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/models/models.dart';
 import '../../core/providers/app_state_providers.dart';
-import '../../core/services/api_service.dart';
 import '../../core/widgets/connect_account_dialog.dart';
 
 class AccountManagerScreen extends StatefulWidget {

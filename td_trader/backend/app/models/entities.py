@@ -9,7 +9,7 @@ from typing import Optional, Dict, Any
 from sqlalchemy import (
     create_engine, Column, Integer, String, Float, Boolean, DateTime, Text, ForeignKey
 )
-from sqlalchemy.orm import declarative_base, relationship, sessionmaker, scoped_session
+from sqlalchemy.orm import declarative_base, relationship, sessionmaker
 from td_trader.backend.app.core.config import settings
 
 Base = declarative_base()
@@ -255,7 +255,8 @@ engine = create_engine(
     settings.DATABASE_URL, 
     connect_args={"check_same_thread": False} if "sqlite" in settings.DATABASE_URL else {}
 )
-SessionLocal = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=engine))
+# Each request/task gets an isolated Session (scoped_session is unsafe across concurrent async tasks)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 def init_db():
     Base.metadata.create_all(bind=engine)

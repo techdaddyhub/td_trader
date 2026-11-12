@@ -1,15 +1,84 @@
 // TD TRADER - MetaTrader 4 & 5 Bridge Integration Center
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/services/api_service.dart';
 
-class MetaTraderBridgeScreen extends StatelessWidget {
+class MetaTraderBridgeScreen extends StatefulWidget {
   const MetaTraderBridgeScreen({super.key});
 
   @override
+  State<MetaTraderBridgeScreen> createState() => _MetaTraderBridgeScreenState();
+}
+
+class _MetaTraderBridgeScreenState extends State<MetaTraderBridgeScreen> {
+  bool _isLoading = true;
+  String? _errorMessage;
+  int _onlineCount = 0;
+  List<dynamic> _terminals = [];
+  Timer? _pollTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadBridgeStatus();
+    _pollTimer = Timer.periodic(const Duration(seconds: 8), (_) {
+      if (mounted) _loadBridgeStatus(silent: true);
+    });
+  }
+
+  @override
+  void dispose() {
+    _pollTimer?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _loadBridgeStatus({bool silent = false}) async {
+    if (!silent && mounted) {
+      setState(() {
+        _isLoading = true;
+        _errorMessage = null;
+      });
+    }
+    try {
+      final status = await apiService.getBridgeStatus();
+      if (!mounted) return;
+      setState(() {
+        _onlineCount = (status['online_count'] as num?)?.toInt() ?? 0;
+        _terminals = (status['terminals'] as List?) ?? [];
+        _errorMessage = null;
+        _isLoading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _errorMessage = e.toString().replaceAll('Exception: ', '');
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final bool hasError = _errorMessage != null;
+    final bool isOnline = !hasError && _onlineCount > 0;
+    final Color statusColor = hasError
+        ? AppColors.bearishRed
+        : (isOnline ? AppColors.bullishGreen : AppColors.warningAmber);
+    final String statusLabel = hasError
+        ? 'SERVER OFFLINE'
+        : (isOnline ? 'ONLINE ($_onlineCount EA)' : 'WAITING FOR EA');
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('DERIV & METATRADER BRIDGE CENTER'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh, color: AppColors.primaryCyan),
+            tooltip: 'Refresh Bridge Status',
+            onPressed: _isLoading ? null : () => _loadBridgeStatus(),
+          ),
+        ],
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
@@ -31,7 +100,7 @@ class MetaTraderBridgeScreen extends StatelessWidget {
                         children: const [
                           Icon(Icons.bolt, color: AppColors.primaryCyan),
                           SizedBox(width: 8),
-                          Text('ZERO-LATENCY BRIDGE STATUS',
+                          Text('LIVE EA BRIDGE STATUS',
                               style: TextStyle(
                                   fontWeight: FontWeight.bold, fontSize: 14)),
                         ],
@@ -40,30 +109,36 @@ class MetaTraderBridgeScreen extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
-                          color: AppColors.bullishGreen.withValues(alpha: 0.2),
+                          color: statusColor.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(4),
-                          border: Border.all(color: AppColors.bullishGreen),
+                          border: Border.all(color: statusColor),
                         ),
-                        child: const Text('ONLINE',
+                        child: Text(statusLabel,
                             style: TextStyle(
-                                color: AppColors.bullishGreen,
+                                color: statusColor,
                                 fontSize: 10,
                                 fontWeight: FontWeight.bold)),
                       ),
                     ],
                   ),
                   const Divider(color: AppColors.border, height: 20),
+                  if (hasError)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: Text(
+                        'Cannot reach backend bridge endpoint: $_errorMessage',
+                        style: const TextStyle(
+                            color: AppColors.bearishRed, fontSize: 12),
+                      ),
+                    ),
                   _buildBridgeRow('Deriv Native WS API v3',
                       'wss://ws.derivws.com (Token Auth)', true),
                   const SizedBox(height: 8),
-                  _buildBridgeRow('Deriv MT5 (DMT5)',
-                      'Deriv-Demo / Deriv-Server (Port 5556)', true),
+                  _buildBridgeRow('MT4 / MT5 WebRequest Bridge',
+                      '/api/v1/bridge/mt/heartbeat', !hasError),
                   const SizedBox(height: 8),
-                  _buildBridgeRow('MT4 Desktop Connector',
-                      'Port 5555 (Encrypted TCP)', true),
-                  const SizedBox(height: 8),
-                  _buildBridgeRow('MT5 Desktop / VPS Connector',
-                      'Port 5556 (Encrypted TCP)', true),
+                  _buildBridgeRow('Connected Active Terminals',
+                      '$_onlineCount Live EA Session(s)', isOnline),
                   const SizedBox(height: 8),
                   _buildBridgeRow('Broker Execution Confirmation',
                       'Mandatory Ticket Receipt', true),
@@ -74,7 +149,88 @@ class MetaTraderBridgeScreen extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
+
+          // Live Connected Terminals Section
+          const Text('CONNECTED MT4 / MT5 EA TERMINALS',
+              style: TextStyle(
+                  color: AppColors.primaryCyan,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12)),
+          const SizedBox(height: 8),
+          if (_isLoading && _terminals.isEmpty)
+            const Padding(
+              padding: EdgeInsets.all(16),
+              child: Center(
+                  child:
+                      CircularProgressIndicator(color: AppColors.primaryCyan)),
+            )
+          else if (_terminals.isEmpty)
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.border),
+              ),
+              child: const Text(
+                'No MT4 or MT5 Expert Advisor heartbeats detected yet.\n'
+                'Attach TDTrader_Bridge_MT5 (.ex5) or TDTrader_Bridge_MT4 (.ex4) to any MetaTrader chart with AutoTrading enabled.',
+                style: TextStyle(
+                    color: AppColors.textSecondary, fontSize: 12, height: 1.5),
+              ),
+            )
+          else
+            ..._terminals.map((term) {
+              final t = Map<String, dynamic>.from(term as Map);
+              final isTermOnline = t['status'] == 'ONLINE';
+              final bal = (t['balance'] as num?)?.toDouble() ?? 0.0;
+              final eq = (t['equity'] as num?)?.toDouble() ?? 0.0;
+              final age =
+                  (t['seconds_since_heartbeat'] as num?)?.toInt() ?? 999;
+
+              return Card(
+                color: AppColors.surface,
+                margin: const EdgeInsets.only(bottom: 10),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  side: BorderSide(
+                    color: isTermOnline
+                        ? AppColors.bullishGreen.withValues(alpha: 0.45)
+                        : AppColors.warningAmber.withValues(alpha: 0.45),
+                  ),
+                ),
+                child: ListTile(
+                  leading: Icon(
+                    isTermOnline ? Icons.sensors : Icons.sensors_off,
+                    color: isTermOnline
+                        ? AppColors.bullishGreen
+                        : AppColors.warningAmber,
+                  ),
+                  title: Text(
+                    '${t['platform'] ?? 'MT5'} #${t['account_number'] ?? ''} (${t['broker'] ?? 'Broker'})',
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold, fontSize: 13),
+                  ),
+                  subtitle: Text(
+                    'Server: ${t['server'] ?? ''} • Bal: \$${bal.toStringAsFixed(2)} | Eq: \$${eq.toStringAsFixed(2)} • ${age}s ago',
+                    style: const TextStyle(
+                        color: AppColors.textSecondary, fontSize: 11),
+                  ),
+                  trailing: Text(
+                    isTermOnline ? 'ONLINE' : 'STALE',
+                    style: TextStyle(
+                      color: isTermOnline
+                          ? AppColors.bullishGreen
+                          : AppColors.warningAmber,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 11,
+                    ),
+                  ),
+                ),
+              );
+            }),
+          const SizedBox(height: 16),
 
           // Deriv Connection Guide
           const Text('DERIV BROKER SETUP (NATIVE API & DMT5)',
