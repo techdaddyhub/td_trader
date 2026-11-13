@@ -13,6 +13,10 @@ venv/
 env/
 dist/
 build/
+build_artifacts/
+*.apk
+*.zip
+*.tar.gz
 *.egg-info/
 .pytest_cache/
 
@@ -22,6 +26,10 @@ build/
 .pub-cache/
 .pub/
 build/
+build_artifacts/
+*.apk
+*.zip
+*.tar.gz
 *.mode1v3
 *.mode2v3
 *.moved-aside
@@ -31,6 +39,10 @@ build/
 **/.flutter-plugins-dependencies
 **/generated_plugin_registrant.dart
 frontend/build/
+build_artifacts/
+*.apk
+*.zip
+*.tar.gz
 
 # IDE & OS
 .idea/

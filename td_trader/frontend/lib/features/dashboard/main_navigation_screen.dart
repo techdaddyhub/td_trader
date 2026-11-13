@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/config/app_config.dart';
 import '../../core/providers/app_state_providers.dart';
 import '../../core/widgets/techdaddy_logo.dart';
 import '../market_scanner/scanner_screen.dart';
