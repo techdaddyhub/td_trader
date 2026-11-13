@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  td-trader-server:
+    build: .
+    container_name: td_trader_cloud
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - PORT=8000
+    volumes:
+      - ./data:/app/data

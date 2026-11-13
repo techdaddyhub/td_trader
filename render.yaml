@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: td-trader-backend
+    runtime: docker
+    dockerfilePath: Dockerfile
+    plan: free
+    region: frankfurt
+    envVars:
+      - key: PORT
+        value: 8000
