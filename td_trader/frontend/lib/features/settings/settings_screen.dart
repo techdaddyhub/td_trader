@@ -162,6 +162,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     runSpacing: 6,
                     children: [
                       ActionChip(
+                        backgroundColor:
+                            AppColors.bullishGreen.withValues(alpha: 0.18),
+                        side: const BorderSide(color: AppColors.bullishGreen),
+                        avatar: const Icon(Icons.cloud_done,
+                            size: 16, color: AppColors.bullishGreen),
+                        label: const Text('Official 24/7 Cloud (Default)',
+                            style: TextStyle(
+                                fontSize: 11,
+                                color: AppColors.bullishGreen,
+                                fontWeight: FontWeight.bold)),
+                        onPressed: () => _applyPreset(AppConfig.defaultCloudUrl),
+                      ),
+                      ActionChip(
                         backgroundColor: AppColors.surfaceLight,
                         avatar: const Icon(Icons.wifi,
                             size: 16, color: AppColors.binanceGold),
@@ -169,7 +182,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             style: TextStyle(
                                 fontSize: 11, color: AppColors.textPrimary)),
                         onPressed: () =>
-                            _applyPreset('http://192.168.1.100:8000'),
+                            _applyPreset('http://192.168.0.2:8000'),
                       ),
                       ActionChip(
                         backgroundColor: AppColors.surfaceLight,
@@ -179,15 +192,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             style: TextStyle(
                                 fontSize: 11, color: AppColors.textPrimary)),
                         onPressed: () => _applyPreset('http://127.0.0.1:8000'),
-                      ),
-                      ActionChip(
-                        backgroundColor: AppColors.surfaceLight,
-                        avatar: const Icon(Icons.phone_android,
-                            size: 16, color: AppColors.binanceGold),
-                        label: const Text('Emulator Host',
-                            style: TextStyle(
-                                fontSize: 11, color: AppColors.textPrimary)),
-                        onPressed: () => _applyPreset('http://10.0.2.2:8000'),
                       ),
                     ],
                   ),

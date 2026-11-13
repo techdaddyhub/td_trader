@@ -49,11 +49,15 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     final accountProvider = context.watch<AccountProvider>();
     final isOnline = accountProvider.isServerOnline;
     final bridgeCount = accountProvider.onlineBridgeCount;
+    final isCloud = AppConfig.baseUrl.contains('railway.app') ||
+        AppConfig.baseUrl.startsWith('https://');
     final badgeColor =
         isOnline ? AppColors.bullishGreen : AppColors.binanceGold;
     final badgeText = isOnline
-        ? (bridgeCount > 0 ? 'PC ONLINE ($bridgeCount EA)' : 'PC ONLINE')
-        : 'CONNECT PC';
+        ? (isCloud
+            ? (bridgeCount > 0 ? 'CLOUD ($bridgeCount EA)' : 'CLOUD ONLINE')
+            : (bridgeCount > 0 ? 'PC ONLINE ($bridgeCount EA)' : 'PC ONLINE'))
+        : (isCloud ? 'CONNECT CLOUD' : 'CONNECT PC');
 
     return Scaffold(
       appBar: AppBar(

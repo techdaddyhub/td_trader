@@ -11,16 +11,33 @@ class AppConfig {
       'Copyright © 2026 TechDaddy. All rights reserved.';
   static const String organization = 'TechDaddy Fintech Systems';
 
-  // API & WebSocket Endpoints (Dynamically configurable & persisted across restarts)
-  static String baseUrl = 'http://127.0.0.1:8000';
+  // Official Production Cloud Backend URL (24/7 Global Access - No PC Needed)
+  static const String defaultCloudUrl =
+      'https://td-trader-backend-production.up.railway.app';
+
+  // API & WebSocket Endpoints (Default to official cloud; dynamically configurable & persisted)
+  static String baseUrl = defaultCloudUrl;
   static const String apiPrefix = '/api/v1';
-  static String get wsUrl => baseUrl.replaceFirst('http', 'ws') + '/ws';
+  static String get wsUrl =>
+      (baseUrl.startsWith('https://')
+          ? baseUrl.replaceFirst('https', 'wss')
+          : baseUrl.replaceFirst('http', 'ws')) +
+      '/ws';
   static String get apiBaseUrl => '$baseUrl$apiPrefix';
 
   static Future<void> loadSavedBaseUrl() async {
     final saved = await storage.loadServerUrl();
     if (saved != null && saved.isNotEmpty) {
-      baseUrl = _normalizeUrl(saved);
+      final norm = _normalizeUrl(saved);
+      // Auto-upgrade legacy localhost/loopback default to 24/7 official cloud
+      if (norm == 'http://127.0.0.1:8000' || norm == 'http://localhost:8000') {
+        baseUrl = defaultCloudUrl;
+        await storage.saveServerUrl(baseUrl);
+      } else {
+        baseUrl = norm;
+      }
+    } else {
+      baseUrl = defaultCloudUrl;
     }
   }
 
