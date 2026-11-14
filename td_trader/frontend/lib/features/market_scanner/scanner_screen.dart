@@ -196,8 +196,13 @@ class _MarketScannerScreenState extends State<MarketScannerScreen> {
           children: [
             ScoreBadge(score: signal.score, size: 36),
             const SizedBox(width: 12),
-            Text('${signal.instrument} Opportunity Score Breakdown',
-                style: const TextStyle(fontSize: 16)),
+            Expanded(
+              child: Text(
+                '${signal.instrument} Score Breakdown',
+                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
           ],
         ),
         content: Column(
@@ -386,7 +391,7 @@ class _MarketScannerScreenState extends State<MarketScannerScreen> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'PC Server Unreachable: ${scanner.errorMessage}',
+                      scanner.errorMessage!,
                       style: const TextStyle(
                           color: Colors.white, fontSize: 11),
                       maxLines: 2,
@@ -401,7 +406,7 @@ class _MarketScannerScreenState extends State<MarketScannerScreen> {
                             builder: (_) => const SettingsScreen()),
                       );
                     },
-                    child: const Text('CONNECT PC',
+                    child: const Text('SETTINGS',
                         style: TextStyle(
                             color: AppColors.binanceGold,
                             fontWeight: FontWeight.bold,

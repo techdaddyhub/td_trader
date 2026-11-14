@@ -36,15 +36,83 @@ class AppTheme {
       cardColor: AppColors.surface,
       dividerColor: AppColors.border,
       fontFamily: 'Roboto',
+      fontFamilyFallback: const ['Roboto', 'Arial', 'sans-serif'],
+      textTheme: const TextTheme(
+        headlineMedium: TextStyle(
+          fontSize: 22,
+          fontWeight: FontWeight.bold,
+          color: AppColors.textPrimary,
+          letterSpacing: 0.3,
+        ),
+        titleLarge: TextStyle(
+          fontSize: 17,
+          fontWeight: FontWeight.bold,
+          color: AppColors.textPrimary,
+          letterSpacing: 0.2,
+        ),
+        titleMedium: TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+          color: AppColors.textPrimary,
+        ),
+        titleSmall: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.bold,
+          color: AppColors.binanceGold,
+        ),
+        bodyLarge: TextStyle(
+          fontSize: 14,
+          color: AppColors.textPrimary,
+          height: 1.35,
+        ),
+        bodyMedium: TextStyle(
+          fontSize: 13,
+          color: AppColors.textPrimary,
+          height: 1.3,
+        ),
+        bodySmall: TextStyle(
+          fontSize: 11,
+          color: AppColors.textSecondary,
+          height: 1.25,
+        ),
+        labelLarge: TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.bold,
+          color: AppColors.textPrimary,
+        ),
+        labelSmall: TextStyle(
+          fontSize: 10,
+          color: AppColors.textMuted,
+          letterSpacing: 0.4,
+        ),
+      ),
       appBarTheme: const AppBarTheme(
         backgroundColor: AppColors.background,
         elevation: 0,
         centerTitle: false,
+        titleSpacing: 14,
         titleTextStyle: TextStyle(
+          fontFamily: 'Roboto',
           color: AppColors.textPrimary,
-          fontSize: 20,
+          fontSize: 17,
           fontWeight: FontWeight.bold,
-          letterSpacing: 0.5,
+          letterSpacing: 0.3,
+        ),
+      ),
+      dialogTheme: DialogTheme(
+        backgroundColor: AppColors.surface,
+        elevation: 10,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+      cardTheme: CardTheme(
+        color: AppColors.surface,
+        elevation: 2,
+        margin: const EdgeInsets.symmetric(vertical: 4),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+          side: const BorderSide(color: AppColors.border, width: 0.8),
         ),
       ),
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
@@ -53,31 +121,39 @@ class AppTheme {
         unselectedItemColor: AppColors.textSecondary,
         type: BottomNavigationBarType.fixed,
         elevation: 8,
+        selectedLabelStyle: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
+        unselectedLabelStyle: TextStyle(fontSize: 11),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.binanceGold,
           foregroundColor: const Color(0xFF0B0E11),
-          textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
+        isDense: true,
         fillColor: AppColors.surfaceLight,
-        hintStyle: const TextStyle(color: AppColors.textMuted),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        hintStyle: const TextStyle(color: AppColors.textMuted, fontSize: 12),
+        labelStyle: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
+        floatingLabelStyle: const TextStyle(
+            color: AppColors.binanceGold, fontSize: 12, fontWeight: FontWeight.w600),
+        helperStyle: const TextStyle(color: AppColors.textMuted, fontSize: 11),
+        errorStyle: const TextStyle(color: AppColors.bearishRed, fontSize: 11),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(8),
           borderSide: const BorderSide(color: AppColors.border),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(8),
           borderSide: const BorderSide(color: AppColors.border),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(8),
           borderSide: const BorderSide(color: AppColors.binanceGold, width: 1.5),
         ),
       ),

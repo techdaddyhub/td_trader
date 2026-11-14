@@ -29,7 +29,7 @@ class ScannerProvider extends ChangeNotifier {
         minScore: _minScore,
       );
     } catch (e) {
-      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      _errorMessage = ApiService.formatUserFriendlyError(e);
       debugPrint('Error fetching opportunities: $e');
     } finally {
       _isLoading = false;
@@ -195,7 +195,7 @@ class AccountProvider extends ChangeNotifier {
       } catch (_) {}
     } catch (e) {
       _isServerOnline = false;
-      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      _errorMessage = ApiService.formatUserFriendlyError(e);
       debugPrint('Error loading accounts: $e');
     } finally {
       _isLoading = false;

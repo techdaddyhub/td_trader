@@ -57,7 +57,7 @@ class _AuthScreenState extends State<AuthScreen> {
       }
     } catch (e) {
       setState(() {
-        _errorMessage = e.toString().replaceAll('Exception: ', '');
+        _errorMessage = ApiService.formatUserFriendlyError(e);
       });
     } finally {
       if (mounted) setState(() => _isLoading = false);

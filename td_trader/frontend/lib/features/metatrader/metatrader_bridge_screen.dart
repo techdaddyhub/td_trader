@@ -52,7 +52,7 @@ class _MetaTraderBridgeScreenState extends State<MetaTraderBridgeScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _errorMessage = e.toString().replaceAll('Exception: ', '');
+        _errorMessage = ApiService.formatUserFriendlyError(e);
         _isLoading = false;
       });
     }
@@ -71,7 +71,14 @@ class _MetaTraderBridgeScreenState extends State<MetaTraderBridgeScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('DERIV & METATRADER BRIDGE CENTER'),
+        title: const FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: Text(
+            'DERIV & METATRADER BRIDGE',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
+          ),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh, color: AppColors.primaryCyan),

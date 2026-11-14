@@ -66,31 +66,36 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         elevation: 1,
         title: Row(
           children: [
-            const TechDaddyLogo(size: 34, showText: false),
-            const SizedBox(width: 10),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: const [
-                Text(
-                  'TD TRADER',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w900,
-                    fontSize: 16,
-                    letterSpacing: 1.5,
-                    color: AppColors.binanceGold,
+            const TechDaddyLogo(size: 32, showText: false),
+            const SizedBox(width: 8),
+            Flexible(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: const [
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      'TD TRADER',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 16,
+                        letterSpacing: 1.2,
+                        color: AppColors.binanceGold,
+                      ),
+                    ),
                   ),
-                ),
-                Text(
-                  'AI TRADING ECOSYSTEM',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 9,
-                    letterSpacing: 0.8,
-                    color: AppColors.textSecondary,
+                  Text(
+                    'AI ECOSYSTEM',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 8.5,
+                      letterSpacing: 0.6,
+                      color: AppColors.textSecondary,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ],
         ),

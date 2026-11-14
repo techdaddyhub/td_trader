@@ -20,6 +20,24 @@ class ApiService {
     return headers;
   }
 
+  static String formatUserFriendlyError(dynamic error) {
+    final str = error.toString();
+    if (str.contains('SocketException') ||
+        str.contains('Connection refused') ||
+        str.contains('No address associated with hostname') ||
+        str.contains('Failed host lookup') ||
+        str.contains('Network is unreachable')) {
+      return 'Unable to reach cloud trading server. Please check your internet connection.';
+    }
+    if (str.contains('TimeoutException') || str.contains('timed out')) {
+      return 'Server response timed out. Please try again.';
+    }
+    return str
+        .replaceAll('Exception: ', '')
+        .replaceAll('ClientException: ', '')
+        .trim();
+  }
+
   String _extractDetail(http.Response response, String fallback) {
     try {
       final decoded = jsonDecode(response.body);

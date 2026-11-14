@@ -232,7 +232,7 @@ class _TradingTerminalScreenState extends State<TradingTerminalScreen> {
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      'PC Server Offline: ${accountProvider.errorMessage}',
+                      accountProvider.errorMessage!,
                       style:
                           const TextStyle(color: Colors.white, fontSize: 12),
                       maxLines: 2,
@@ -247,7 +247,7 @@ class _TradingTerminalScreenState extends State<TradingTerminalScreen> {
                             builder: (_) => const SettingsScreen()),
                       );
                     },
-                    child: const Text('CONNECT PC',
+                    child: const Text('SETTINGS',
                         style: TextStyle(
                             color: AppColors.binanceGold,
                             fontWeight: FontWeight.bold,

@@ -121,8 +121,9 @@ void showConnectMetaTraderDialog(BuildContext context) {
 
         return AlertDialog(
           backgroundColor: AppColors.surface,
+          insetPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(14),
             side: BorderSide(
               color: isLive ? AppColors.binanceGold : AppColors.bullishGreen,
               width: 1.5,
@@ -133,30 +134,46 @@ void showConnectMetaTraderDialog(BuildContext context) {
               Icon(
                 isLive ? Icons.bolt : Icons.science,
                 color: isLive ? AppColors.binanceGold : AppColors.bullishGreen,
-                size: 24,
+                size: 22,
               ),
               const SizedBox(width: 8),
               Expanded(
-                child: Text(
-                  isDerivApi
-                      ? (isLive
-                          ? 'CONNECT DERIV LIVE API'
-                          : 'CONNECT DERIV DEMO API')
-                      : (isLive
-                          ? 'CONNECT LIVE BROKER ACCOUNT'
-                          : 'CONNECT DEMO BROKER ACCOUNT'),
-                  style: TextStyle(
-                    color:
-                        isLive ? AppColors.binanceGold : AppColors.bullishGreen,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 15,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    isDerivApi
+                        ? (isLive
+                            ? 'CONNECT DERIV LIVE API'
+                            : 'CONNECT DERIV DEMO API')
+                        : (isLive
+                            ? 'CONNECT LIVE BROKER'
+                            : 'CONNECT DEMO BROKER'),
+                    style: TextStyle(
+                      color: isLive
+                          ? AppColors.binanceGold
+                          : AppColors.bullishGreen,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      letterSpacing: 0.3,
+                    ),
                   ),
                 ),
               ),
+              IconButton(
+                icon: const Icon(Icons.close,
+                    color: AppColors.textSecondary, size: 20),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+                onPressed: () => Navigator.pop(ctx),
+              ),
             ],
           ),
-          content: SizedBox(
-            width: 470,
+          content: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: 460,
+              maxHeight: MediaQuery.of(context).size.height * 0.72,
+            ),
             child: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -171,51 +188,74 @@ void showConnectMetaTraderDialog(BuildContext context) {
                   const SizedBox(height: 6),
                   DropdownButtonFormField<String>(
                     key: ValueKey('platform_$platform'),
+                    isExpanded: true,
+                    menuMaxHeight: 280,
                     initialValue: platform,
                     decoration: const InputDecoration(
-                        labelText: 'Platform & Account Type'),
+                        labelText: 'Platform & Environment'),
                     dropdownColor: AppColors.surface,
                     items: const [
                       DropdownMenuItem(
                         value: 'DERIV_API_DEMO',
-                        child: Text('🟢 Deriv Native API - DEMO (VRTC Token)',
-                            style: TextStyle(color: AppColors.bullishGreen)),
+                        child: Text('🟢 Deriv Native API - DEMO (Token)',
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                            style: TextStyle(
+                                color: AppColors.bullishGreen, fontSize: 13)),
                       ),
                       DropdownMenuItem(
                         value: 'DERIV_API_LIVE',
-                        child: Text('⚡ Deriv Native API - LIVE (Real CR Token)',
+                        child: Text('⚡ Deriv Native API - LIVE (Real Token)',
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
                             style: TextStyle(
                                 color: AppColors.binanceGold,
-                                fontWeight: FontWeight.bold)),
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13)),
                       ),
                       DropdownMenuItem(
                         value: 'MT5_LIVE',
-                        child: Text('⚡ MetaTrader 5 (MT5) - LIVE Real Capital',
+                        child: Text('⚡ MetaTrader 5 (MT5) - LIVE Real',
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
                             style: TextStyle(
                                 color: AppColors.binanceGold,
-                                fontWeight: FontWeight.bold)),
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13)),
                       ),
                       DropdownMenuItem(
                         value: 'MT5_DEMO',
-                        child: Text('🟢 MetaTrader 5 (MT5) - DEMO Account',
-                            style: TextStyle(color: AppColors.bullishGreen)),
+                        child: Text('🟢 MetaTrader 5 (MT5) - DEMO',
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                            style: TextStyle(
+                                color: AppColors.bullishGreen, fontSize: 13)),
                       ),
                       DropdownMenuItem(
                         value: 'MT4_LIVE',
-                        child: Text('⚡ MetaTrader 4 (MT4) - LIVE Real Capital',
+                        child: Text('⚡ MetaTrader 4 (MT4) - LIVE Real',
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
                             style: TextStyle(
                                 color: AppColors.binanceGold,
-                                fontWeight: FontWeight.bold)),
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13)),
                       ),
                       DropdownMenuItem(
                         value: 'MT4_DEMO',
-                        child: Text('🟢 MetaTrader 4 (MT4) - DEMO Account',
-                            style: TextStyle(color: AppColors.bullishGreen)),
+                        child: Text('🟢 MetaTrader 4 (MT4) - DEMO',
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                            style: TextStyle(
+                                color: AppColors.bullishGreen, fontSize: 13)),
                       ),
                       DropdownMenuItem(
                         value: 'PAPER_TRADING',
-                        child: Text('🛡️ TD Risk-Free Paper Simulator (\$10k)',
-                            style: TextStyle(color: Colors.white)),
+                        child: Text('🛡️ TD Risk-Free Paper (\$10,000)',
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                            style:
+                                TextStyle(color: Colors.white, fontSize: 13)),
                       ),
                     ],
                     onChanged: (val) {
@@ -230,7 +270,7 @@ void showConnectMetaTraderDialog(BuildContext context) {
                       });
                     },
                   ),
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 12),
 
                   // 2. Broker Preset Selector
                   const Text('2. BROKER / DERIV / PROP FIRM PRESET',
@@ -241,12 +281,22 @@ void showConnectMetaTraderDialog(BuildContext context) {
                   const SizedBox(height: 6),
                   DropdownButtonFormField<String>(
                     key: ValueKey('preset_$selectedPreset'),
+                    isExpanded: true,
+                    menuMaxHeight: 280,
                     initialValue: selectedPreset,
                     decoration: const InputDecoration(
                         labelText: 'Quick Broker Presets'),
                     dropdownColor: AppColors.surface,
                     items: brokerPresets.keys
-                        .map((k) => DropdownMenuItem(value: k, child: Text(k)))
+                        .map((k) => DropdownMenuItem(
+                              value: k,
+                              child: Text(
+                                k,
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                                style: const TextStyle(fontSize: 13),
+                              ),
+                            ))
                         .toList(),
                     onChanged: (val) {
                       setDialogState(() {
@@ -450,11 +500,11 @@ void showConnectMetaTraderDialog(BuildContext context) {
                     decoration: InputDecoration(
                       labelText: isDerivApi
                           ? 'Deriv Account ID (CR / VRTC)'
-                          : 'Account Login / Account Number',
+                          : 'Account Login / ID',
                       hintText:
-                          isDerivApi ? 'e.g. VRTC123456 or CR987654' : 'e.g. 5829103',
+                          isDerivApi ? 'e.g. VRTC123456 or CR987654' : 'e.g. 202477407',
                       prefixIcon:
-                          const Icon(Icons.person, color: AppColors.binanceGold),
+                          const Icon(Icons.person, color: AppColors.binanceGold, size: 20),
                     ),
                   ),
                   const SizedBox(height: 10),
@@ -464,17 +514,17 @@ void showConnectMetaTraderDialog(BuildContext context) {
                         child: TextField(
                           controller: brokerController,
                           decoration: const InputDecoration(
-                              labelText: 'Broker Name',
+                              labelText: 'Broker',
                               hintText: 'Deriv (SVG) LLC'),
                         ),
                       ),
-                      const SizedBox(width: 10),
+                      const SizedBox(width: 8),
                       Expanded(
                         child: TextField(
                           controller: serverController,
                           decoration: const InputDecoration(
-                              labelText: 'Server Name',
-                              hintText: 'Deriv-Demo / Deriv-Server'),
+                              labelText: 'Server',
+                              hintText: 'Deriv-Demo'),
                         ),
                       ),
                     ],
@@ -485,12 +535,12 @@ void showConnectMetaTraderDialog(BuildContext context) {
                       controller: passwordController,
                       obscureText: true,
                       decoration: const InputDecoration(
-                        labelText: 'Password (Encrypted AES-256)',
+                        labelText: 'Account Password',
                         hintText: 'Master or Investor Password',
                         prefixIcon:
-                            Icon(Icons.lock, color: AppColors.binanceGold),
+                            Icon(Icons.lock, color: AppColors.binanceGold, size: 20),
                         helperText:
-                            'Encrypted at rest immediately. Never stored plaintext.',
+                            'Encrypted at rest with AES-256.',
                       ),
                     ),
                   ],
@@ -503,20 +553,24 @@ void showConnectMetaTraderDialog(BuildContext context) {
                           keyboardType: const TextInputType.numberWithOptions(
                               decimal: true),
                           decoration: const InputDecoration(
-                              labelText: 'Balance / Equity', prefixText: '\$'),
+                              labelText: 'Balance / Equity', prefixText: '\$ '),
                         ),
                       ),
-                      const SizedBox(width: 10),
+                      const SizedBox(width: 8),
                       Expanded(
                         child: DropdownButtonFormField<String>(
                           key: ValueKey('currency_$currency'),
+                          isExpanded: true,
+                          menuMaxHeight: 240,
                           initialValue: currency,
                           decoration:
                               const InputDecoration(labelText: 'Currency'),
                           dropdownColor: AppColors.surface,
                           items: ['USD', 'EUR', 'GBP', 'AUD', 'CAD', 'JPY']
-                              .map((c) =>
-                                  DropdownMenuItem(value: c, child: Text(c)))
+                              .map((c) => DropdownMenuItem(
+                                  value: c,
+                                  child: Text(c,
+                                      style: const TextStyle(fontSize: 13))))
                               .toList(),
                           onChanged: (val) =>
                               setDialogState(() => currency = val!),
@@ -687,10 +741,13 @@ void showConnectMetaTraderDialog(BuildContext context) {
                         }
                       }
                     },
-              child: Text(
-                isLive ? 'CONNECT LIVE ACCOUNT' : 'CONNECT DEMO ACCOUNT',
-                style: const TextStyle(
-                    fontWeight: FontWeight.w900, letterSpacing: 0.8),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  isLive ? 'CONNECT LIVE ACCOUNT' : 'CONNECT DEMO ACCOUNT',
+                  style: const TextStyle(
+                      fontWeight: FontWeight.w900, letterSpacing: 0.5, fontSize: 13),
+                ),
               ),
             ),
           ],

@@ -31,6 +31,19 @@ class TDTraderApp extends StatelessWidget {
       title: AppConfig.appName,
       debugShowCheckedModeBanner: false,
       theme: AppTheme.darkTheme,
+      builder: (context, child) {
+        final mediaQuery = MediaQuery.of(context);
+        // Clamp text scaler to keep layout crisp, clean, and proportional on all displays
+        return MediaQuery(
+          data: mediaQuery.copyWith(
+            textScaler: mediaQuery.textScaler.clamp(
+              minScaleFactor: 0.85,
+              maxScaleFactor: 1.10,
+            ),
+          ),
+          child: child ?? const SizedBox.shrink(),
+        );
+      },
       home: const MainNavigationScreen(),
     );
   }

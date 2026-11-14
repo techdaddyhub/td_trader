@@ -36,7 +36,7 @@ class _TradingJournalScreenState extends State<TradingJournalScreen> {
       debugPrint('Error loading journal: $e');
       if (!mounted) return;
       setState(() {
-        _errorMessage = e.toString().replaceAll('Exception: ', '');
+        _errorMessage = ApiService.formatUserFriendlyError(e);
       });
     } finally {
       if (mounted) setState(() => _isLoading = false);

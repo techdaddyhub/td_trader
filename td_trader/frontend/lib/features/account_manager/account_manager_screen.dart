@@ -74,7 +74,14 @@ class _AccountManagerScreenState extends State<AccountManagerScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('MULTI-ACCOUNT MANAGER'),
+        title: const FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: Text(
+            'MULTI-ACCOUNT MANAGER',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
+          ),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.add_circle_outline,
@@ -137,39 +144,41 @@ class _AccountManagerScreenState extends State<AccountManagerScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Row(
-                                children: [
-                                  Icon(
-                                    isLive
-                                        ? Icons.account_balance
-                                        : Icons.analytics_outlined,
-                                    color: isLive
-                                        ? AppColors.warningAmber
-                                        : AppColors.primaryCyan,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        '#${acct.accountNumber} • ${acct.platform.replaceAll("_", " ")}',
-                                        style: const TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 15),
-                                      ),
-                                      Text(
-                                        acct.brokerName,
-                                        style: const TextStyle(
-                                            color: AppColors.textSecondary,
-                                            fontSize: 12),
-                                      ),
-                                    ],
-                                  ),
-                                ],
+                              Icon(
+                                isLive
+                                    ? Icons.account_balance
+                                    : Icons.analytics_outlined,
+                                color: isLive
+                                    ? AppColors.warningAmber
+                                    : AppColors.primaryCyan,
                               ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      '#${acct.accountNumber} • ${acct.platform.replaceAll("_", " ")}',
+                                      overflow: TextOverflow.ellipsis,
+                                      maxLines: 1,
+                                      style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 14),
+                                    ),
+                                    Text(
+                                      acct.brokerName,
+                                      overflow: TextOverflow.ellipsis,
+                                      maxLines: 1,
+                                      style: const TextStyle(
+                                          color: AppColors.textSecondary,
+                                          fontSize: 11),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 8),
                               if (isActive)
                                 Container(
                                   padding: const EdgeInsets.symmetric(
@@ -193,7 +202,8 @@ class _AccountManagerScreenState extends State<AccountManagerScreen> {
                                       accountProvider.switchActiveAccount(acct),
                                   child: const Text('SELECT',
                                       style: TextStyle(
-                                          color: AppColors.primaryCyan)),
+                                          color: AppColors.primaryCyan,
+                                          fontSize: 12)),
                                 ),
                             ],
                           ),
@@ -275,18 +285,28 @@ class _AccountManagerScreenState extends State<AccountManagerScreen> {
   }
 
   Widget _buildMetric(String label, String val, {Color? color}) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label,
-            style: const TextStyle(color: AppColors.textMuted, fontSize: 10)),
-        const SizedBox(height: 2),
-        Text(val,
-            style: TextStyle(
-                color: color ?? Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 13)),
-      ],
+    return Expanded(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(label,
+                style: const TextStyle(color: AppColors.textMuted, fontSize: 10)),
+          ),
+          const SizedBox(height: 2),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(val,
+                style: TextStyle(
+                    color: color ?? Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13)),
+          ),
+        ],
+      ),
     );
   }
 }
