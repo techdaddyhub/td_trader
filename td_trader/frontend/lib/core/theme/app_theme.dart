@@ -99,22 +99,6 @@ class AppTheme {
           letterSpacing: 0.3,
         ),
       ),
-      dialogTheme: DialogTheme(
-        backgroundColor: AppColors.surface,
-        elevation: 10,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-      ),
-      cardTheme: CardTheme(
-        color: AppColors.surface,
-        elevation: 2,
-        margin: const EdgeInsets.symmetric(vertical: 4),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-          side: const BorderSide(color: AppColors.border, width: 0.8),
-        ),
-      ),
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         backgroundColor: AppColors.surface,
         selectedItemColor: AppColors.binanceGold,
