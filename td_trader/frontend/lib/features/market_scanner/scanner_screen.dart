@@ -7,6 +7,7 @@ import '../../core/models/models.dart';
 import '../../core/providers/app_state_providers.dart';
 import '../../core/services/api_service.dart';
 import '../../core/widgets/common_widgets.dart';
+import '../../core/widgets/connect_account_dialog.dart';
 import '../settings/settings_screen.dart';
 
 class MarketScannerScreen extends StatefulWidget {
@@ -53,8 +54,8 @@ class _MarketScannerScreenState extends State<MarketScannerScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content:
-                Text('Sync error: ${e.toString().replaceAll("Exception: ", "")}'),
+            content: Text(
+                'Sync error: ${e.toString().replaceAll("Exception: ", "")}'),
             backgroundColor: AppColors.bearishRed,
           ),
         );
@@ -87,9 +88,7 @@ class _MarketScannerScreenState extends State<MarketScannerScreen> {
         title: Row(
           children: [
             Icon(
-              opp.direction == 'BUY'
-                  ? Icons.trending_up
-                  : Icons.trending_down,
+              opp.direction == 'BUY' ? Icons.trending_up : Icons.trending_down,
               color: opp.direction == 'BUY'
                   ? AppColors.bullishGreen
                   : AppColors.bearishRed,
@@ -211,7 +210,8 @@ class _MarketScannerScreenState extends State<MarketScannerScreen> {
             Expanded(
               child: Text(
                 '${signal.instrument} Score Breakdown',
-                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                style:
+                    const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                 overflow: TextOverflow.ellipsis,
               ),
             ),
@@ -404,8 +404,7 @@ class _MarketScannerScreenState extends State<MarketScannerScreen> {
                   Expanded(
                     child: Text(
                       scanner.errorMessage!,
-                      style: const TextStyle(
-                          color: Colors.white, fontSize: 11),
+                      style: const TextStyle(color: Colors.white, fontSize: 11),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
