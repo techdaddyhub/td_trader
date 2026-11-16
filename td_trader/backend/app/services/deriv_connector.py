@@ -21,6 +21,17 @@ from td_trader.ai_engine.market_scanner.market_data_feed import INSTRUMENT_CATAL
 
 DERIV_WS_BASE_URL = "wss://ws.derivws.com/websockets/v3"
 DEFAULT_DERIV_APP_ID = "1089"
+DERIV_WS_ENDPOINTS: List[str] = [
+    "wss://ws.derivws.com/websockets/v3",
+    "wss://blue.derivws.com/websockets/v3",
+    "wss://green.derivws.com/websockets/v3",
+    "wss://red.derivws.com/websockets/v3",
+]
+DERIV_ORIGIN = "https://app.deriv.com"
+DERIV_USER_AGENT = (
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+    "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+)
 
 TIMEFRAME_GRANULARITY_SECONDS: Dict[str, int] = {
     "M1": 60,
@@ -46,10 +57,26 @@ REVERSE_DERIV_SYMBOL_MAP: Dict[str, str] = {
 class DerivConnector:
     """Bi-directional WebSocket connector for Deriv Native API (Demo VRTC & Live CR)."""
 
-    @staticmethod
-    def build_ws_url(app_id: str = DEFAULT_DERIV_APP_ID) -> str:
+    @classmethod
+    def build_ws_url(cls, app_id: str = DEFAULT_DERIV_APP_ID, base_url: str = DERIV_WS_BASE_URL) -> str:
         clean_id = re.sub(r"[^0-9]", "", str(app_id or "")) or DEFAULT_DERIV_APP_ID
-        return f"{DERIV_WS_BASE_URL}?app_id={clean_id}"
+        return f"{base_url}?app_id={clean_id}&l=EN&brand=deriv"
+
+    @classmethod
+    def get_ws_connect_kwargs(cls, timeout: float = 12.0) -> Tuple[Dict[str, Any], Dict[str, str]]:
+        headers = {
+            "Origin": DERIV_ORIGIN,
+            "User-Agent": DERIV_USER_AGENT,
+        }
+        kwargs = {
+            "origin": DERIV_ORIGIN,
+            "user_agent_header": DERIV_USER_AGENT,
+            "open_timeout": timeout,
+            "close_timeout": 5,
+            "ping_interval": 20,
+            "ping_timeout": 10,
+        }
+        return kwargs, headers
 
     @staticmethod
     def to_deriv_symbol(symbol: str) -> str:
@@ -111,21 +138,41 @@ class DerivConnector:
         app_id: str = DEFAULT_DERIV_APP_ID,
         timeout: float = 12.0,
     ) -> List[Dict[str, Any]]:
-        """Execute a sequential list of Deriv WebSocket RPC messages on one session."""
-        url = self.build_ws_url(app_id)
-        responses: List[Dict[str, Any]] = []
-        async with websockets.connect(url, open_timeout=timeout, close_timeout=5) as ws:
-            for payload in payloads:
-                await ws.send(json.dumps(payload))
-                raw = await ws.recv()
-                msg = json.loads(raw)
-                if "error" in msg:
-                    err = msg["error"]
-                    raise RuntimeError(
-                        f"Deriv API Error ({err.get('code', 'UNKNOWN')}): {err.get('message', 'Request rejected')}"
-                    )
-                responses.append(msg)
-        return responses
+        """Execute a sequential list of Deriv WebSocket RPC messages on one session with multi-endpoint failover."""
+        kwargs, headers = self.get_ws_connect_kwargs(timeout=timeout)
+        last_error: Optional[Exception] = None
+
+        for base_url in DERIV_WS_ENDPOINTS:
+            url = self.build_ws_url(app_id, base_url=base_url)
+            try:
+                try:
+                    conn_ctx = websockets.connect(url, additional_headers=headers, **kwargs)
+                except TypeError:
+                    conn_ctx = websockets.connect(url, extra_headers=headers, **kwargs)
+
+                async with conn_ctx as ws:
+                    responses: List[Dict[str, Any]] = []
+                    for payload in payloads:
+                        await ws.send(json.dumps(payload))
+                        raw = await ws.recv()
+                        msg = json.loads(raw)
+                        if "error" in msg:
+                            err = msg["error"]
+                            raise RuntimeError(
+                                f"Deriv API Error ({err.get('code', 'UNKNOWN')}): {err.get('message', 'Request rejected')}"
+                            )
+                        responses.append(msg)
+                    return responses
+            except RuntimeError:
+                raise
+            except Exception as exc:
+                last_error = exc
+                continue
+
+        raise RuntimeError(
+            f"Deriv WebSocket connection rejected ({last_error or 'HTTP 520 / Unreachable'}). "
+            "Please check token or retry in a few moments."
+        )
 
     async def authorize_token(
         self,
@@ -295,69 +342,81 @@ class DerivConnector:
         if limit_order:
             proposal_req["limit_order"] = limit_order
 
-        url = self.build_ws_url(app_id)
-        try:
-            async with websockets.connect(url, open_timeout=12.0, close_timeout=5) as ws:
-                # 1. Authorize token
-                await ws.send(json.dumps({"authorize": api_token}))
-                auth_msg = json.loads(await ws.recv())
-                if "error" in auth_msg:
-                    err = auth_msg["error"]
+        kwargs, headers = self.get_ws_connect_kwargs(timeout=12.0)
+        last_error: Optional[Exception] = None
+
+        for base_url in DERIV_WS_ENDPOINTS:
+            url = self.build_ws_url(app_id, base_url=base_url)
+            try:
+                try:
+                    conn_ctx = websockets.connect(url, additional_headers=headers, **kwargs)
+                except TypeError:
+                    conn_ctx = websockets.connect(url, extra_headers=headers, **kwargs)
+
+                async with conn_ctx as ws:
+                    # 1. Authorize token
+                    await ws.send(json.dumps({"authorize": api_token}))
+                    auth_msg = json.loads(await ws.recv())
+                    if "error" in auth_msg:
+                        err = auth_msg["error"]
+                        return {
+                            "confirmed": False,
+                            "status": "AUTH_FAILED",
+                            "error": f"{err.get('code', 'AUTH')}: {err.get('message', 'Unauthorized token')}",
+                        }
+
+                    # 2. Request live executable quote proposal
+                    await ws.send(json.dumps(proposal_req))
+                    prop_msg = json.loads(await ws.recv())
+                    if "error" in prop_msg:
+                        err = prop_msg["error"]
+                        return {
+                            "confirmed": False,
+                            "status": "PROPOSAL_REJECTED",
+                            "error": f"{err.get('code', 'PROPOSAL')}: {err.get('message', 'Proposal rejected by Deriv')}",
+                        }
+
+                    proposal = prop_msg.get("proposal", {})
+                    prop_id = proposal.get("id")
+                    ask_price = float(proposal.get("ask_price", stake))
+                    spot_price = float(proposal.get("spot", entry_price))
+
+                    # 3. Execute Buy Contract
+                    await ws.send(json.dumps({"buy": prop_id, "price": ask_price}))
+                    buy_msg = json.loads(await ws.recv())
+                    if "error" in buy_msg:
+                        err = buy_msg["error"]
+                        return {
+                            "confirmed": False,
+                            "status": "EXECUTION_REJECTED",
+                            "error": f"{err.get('code', 'BUY')}: {err.get('message', 'Buy rejected by Deriv')}",
+                        }
+
+                    buy_data = buy_msg.get("buy", {})
+                    contract_id = str(buy_data.get("contract_id", ""))
+                    ticket = f"DERIV_{contract_id}"
+
                     return {
-                        "confirmed": False,
-                        "status": "AUTH_FAILED",
-                        "error": f"{err.get('code', 'AUTH')}: {err.get('message', 'Unauthorized token')}",
+                        "confirmed": True,
+                        "status": "CONFIRMED",
+                        "broker_ticket": ticket,
+                        "deriv_contract_id": contract_id,
+                        "deriv_transaction_id": str(buy_data.get("transaction_id", "")),
+                        "fill_price": spot_price,
+                        "slippage_pips": 0.0,
+                        "balance_after": buy_data.get("balance_after"),
+                        "confirmed_at": datetime.utcnow().isoformat(),
+                        "lots_filled": lots,
                     }
+            except Exception as exc:
+                last_error = exc
+                continue
 
-                # 2. Request live executable quote proposal
-                await ws.send(json.dumps(proposal_req))
-                prop_msg = json.loads(await ws.recv())
-                if "error" in prop_msg:
-                    err = prop_msg["error"]
-                    return {
-                        "confirmed": False,
-                        "status": "PROPOSAL_REJECTED",
-                        "error": f"{err.get('code', 'PROPOSAL')}: {err.get('message', 'Proposal rejected by Deriv')}",
-                    }
-
-                proposal = prop_msg.get("proposal", {})
-                prop_id = proposal.get("id")
-                ask_price = float(proposal.get("ask_price", stake))
-                spot_price = float(proposal.get("spot", entry_price))
-
-                # 3. Execute Buy Contract
-                await ws.send(json.dumps({"buy": prop_id, "price": ask_price}))
-                buy_msg = json.loads(await ws.recv())
-                if "error" in buy_msg:
-                    err = buy_msg["error"]
-                    return {
-                        "confirmed": False,
-                        "status": "EXECUTION_REJECTED",
-                        "error": f"{err.get('code', 'BUY')}: {err.get('message', 'Buy rejected by Deriv')}",
-                    }
-
-                buy_data = buy_msg.get("buy", {})
-                contract_id = str(buy_data.get("contract_id", ""))
-                ticket = f"DERIV_{contract_id}"
-
-                return {
-                    "confirmed": True,
-                    "status": "CONFIRMED",
-                    "broker_ticket": ticket,
-                    "deriv_contract_id": contract_id,
-                    "deriv_transaction_id": str(buy_data.get("transaction_id", "")),
-                    "fill_price": spot_price,
-                    "slippage_pips": 0.0,
-                    "balance_after": buy_data.get("balance_after"),
-                    "confirmed_at": datetime.utcnow().isoformat(),
-                    "lots_filled": lots,
-                }
-        except Exception as exc:
-            return {
-                "confirmed": False,
-                "status": "CONNECTION_ERROR",
-                "error": f"Deriv WebSocket execution failed: {exc}",
-            }
+        return {
+            "confirmed": False,
+            "status": "CONNECTION_ERROR",
+            "error": f"Deriv WebSocket execution failed: {last_error or 'Connection rejected'}",
+        }
 
     async def close_contract_async(
         self,

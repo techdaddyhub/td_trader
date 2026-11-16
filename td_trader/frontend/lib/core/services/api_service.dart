@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../config/app_config.dart';
 import '../models/models.dart';
+import 'deriv_direct_verifier.dart';
 
 class ApiService {
   String? _authToken;
@@ -237,18 +238,32 @@ class ApiService {
   // --- Deriv Broker Endpoints ---
   Future<Map<String, dynamic>> verifyDerivToken(String apiToken,
       {String appId = '1089'}) async {
-    final response = await http
-        .post(
-          Uri.parse(
-              '${AppConfig.baseUrl}${AppConfig.apiPrefix}/brokers/deriv/verify-token'),
-          headers: _headers,
-          body: jsonEncode({'api_token': apiToken, 'app_id': appId}),
-        )
-        .timeout(const Duration(seconds: 15));
-    if (response.statusCode == 200) {
-      return jsonDecode(response.body);
+    // 1. Try cloud backend verification first
+    try {
+      final response = await http
+          .post(
+            Uri.parse(
+                '${AppConfig.baseUrl}${AppConfig.apiPrefix}/brokers/deriv/verify-token'),
+            headers: _headers,
+            body: jsonEncode({'api_token': apiToken, 'app_id': appId}),
+          )
+          .timeout(const Duration(seconds: 12));
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      }
+    } catch (_) {
+      // Backend error or timeout; proceed to mobile-direct verification fallback
     }
-    throw Exception(_extractDetail(response, 'Deriv verification failed'));
+
+    // 2. Dual-redundancy fallback: Direct WebSocket verification from device
+    try {
+      return await DerivDirectVerifier.verifyDirect(apiToken, appId: appId);
+    } catch (e) {
+      final errStr = e.toString().replaceAll('Exception:', '').trim();
+      throw Exception(errStr.isEmpty
+          ? 'Deriv verification failed. Please check your API token.'
+          : errStr);
+    }
   }
 
   Future<Map<String, dynamic>> syncDerivTicks(

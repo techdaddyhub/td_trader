@@ -1,7 +1,7 @@
 name: td_trader
 description: "TD TRADER - Advanced AI Trading Ecosystem. Trade Smarter. Think Faster. Let AI Explain. Owned and Developed by TechDaddy."
 publish_to: "none"
-version: 2.0.0+1
+version: 2.0.1+1
 
 environment:
   sdk: ">=3.0.0 <4.0.0"

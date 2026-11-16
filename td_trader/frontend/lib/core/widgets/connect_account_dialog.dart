@@ -454,8 +454,10 @@ void showConnectMetaTraderDialog(BuildContext context) {
                                   setDialogState(() {
                                     isVerifyingDeriv = false;
                                     derivVerifyOk = false;
-                                    derivVerifyStatus =
-                                        'Verification failed: $e';
+                                    final cleanErr = ApiService.formatUserFriendlyError(e)
+                                        .replaceAll('Exception:', '')
+                                        .trim();
+                                    derivVerifyStatus = 'Verification failed: $cleanErr';
                                   });
                                 }
                               },
