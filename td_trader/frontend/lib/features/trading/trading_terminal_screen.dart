@@ -122,10 +122,24 @@ class _TradingTerminalScreenState extends State<TradingTerminalScreen> {
       }
     } catch (e) {
       if (mounted) {
+        final cleanMsg = e
+            .toString()
+            .replaceAll('Exception: ', '')
+            .replaceAll('RuntimeError: ', '')
+            .trim();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text('Execution Blocked: $e'),
-              backgroundColor: AppColors.bearishRed),
+            content: Text('Execution Blocked: $cleanMsg'),
+            backgroundColor: AppColors.bearishRed,
+            duration: const Duration(seconds: 6),
+            action: cleanMsg.contains('MetaTrader EA bridge is offline')
+                ? SnackBarAction(
+                    label: 'PC-FREE DERIV',
+                    textColor: AppColors.binanceGold,
+                    onPressed: () => showConnectMetaTraderDialog(context),
+                  )
+                : null,
+          ),
         );
       }
     } finally {

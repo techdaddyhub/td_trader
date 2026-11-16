@@ -93,7 +93,8 @@ class OrderExecutionService:
     ) -> Dict[str, Any]:
         """Persist confirmed broker execution receipt across Order and Position tables."""
         if not broker_receipt.get("confirmed", False):
-            raise RuntimeError(f"Broker rejected execution: {broker_receipt.get('error', 'Unknown Error')}")
+            err_msg = broker_receipt.get("error", "Broker rejected execution.")
+            raise RuntimeError(err_msg)
 
         ticket = broker_receipt["broker_ticket"]
         fill_price = broker_receipt["fill_price"]

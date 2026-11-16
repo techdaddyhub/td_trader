@@ -172,7 +172,7 @@ class MetaTraderBridgeConnector:
                 "status": "BRIDGE_OFFLINE",
                 "error": (
                     f"MetaTrader EA bridge is offline for account #{acct_num}. "
-                    "Attach TDTrader_Bridge_MT5/MT4 onto any chart and enable Allow WebRequest for your TD Trader URL."
+                    "Attach TDTrader_Bridge_MT5 onto your MT5 PC/VPS chart, or switch to Deriv Native API for 100% PC-free trading."
                 ),
             }
 
@@ -215,7 +215,7 @@ class MetaTraderBridgeConnector:
             return {
                 "confirmed": False,
                 "status": "BRIDGE_OFFLINE",
-                "error": f"MetaTrader EA bridge is offline for account #{acct_num}.",
+                "error": f"MetaTrader EA bridge is offline for account #{acct_num}. Attach TDTrader_Bridge_MT5 onto your MT5 PC/VPS chart, or switch to Deriv Native API for 100% PC-free trading.",
             }
         command = {
             "action": "CLOSE_POSITION",

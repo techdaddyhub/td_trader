@@ -176,11 +176,23 @@ class _MarketScannerScreenState extends State<MarketScannerScreen> {
       }
     } catch (e) {
       if (mounted) {
+        final cleanMsg = e
+            .toString()
+            .replaceAll('Exception: ', '')
+            .replaceAll('RuntimeError: ', '')
+            .trim();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-                'Execution blocked: ${e.toString().replaceAll("Exception: ", "")}'),
+            content: Text('Execution blocked: $cleanMsg'),
             backgroundColor: AppColors.bearishRed,
+            duration: const Duration(seconds: 6),
+            action: cleanMsg.contains('MetaTrader EA bridge is offline')
+                ? SnackBarAction(
+                    label: 'PC-FREE DERIV',
+                    textColor: AppColors.binanceGold,
+                    onPressed: () => showConnectMetaTraderDialog(context),
+                  )
+                : null,
           ),
         );
       }
